@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Tab 1
+      Tab 1 - Index
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -9,9 +9,58 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title size="large">Tab 1 - Index</ion-title>
     </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </ion-header>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+<ion-card>
+  <ion-card-content>
+    <ion-list>
+      <ion-label>1800 mL</ion-label>
+      <p></p>
+      <ion-label>Última donación: </ion-label>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Puntos de Donación</ion-card-title>
+    <ion-card-subtitle>Lista Temporal</ion-card-subtitle>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-list>
+
+      <ion-item button>
+        <ion-label>
+          <h3>Centro de Donación A</h3>
+          <p>Calle 123 - a 0.5 kilómetros</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item button>
+        <ion-label>
+          <h3>Centro de Donación B</h3>
+          <p>Calle 234 - a 1.3 kilómetros</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item button>
+        <ion-label>
+          <h3>Centro de Donación C</h3>
+          <p>Calle 789 - a 0.3 kilómetros</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item button>
+        <ion-label>
+          <h3>Centro de Donación D</h3>
+          <p>Calle 654 - a 4.3 kilómetros</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+
 </ion-content>

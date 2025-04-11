@@ -1,0 +1,11 @@
+.center-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  ion-segment-button ion-label {
+    white-space: normal;
+    text-align: center;
+  }

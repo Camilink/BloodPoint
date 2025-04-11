@@ -1,0 +1,100 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Tabr - Registro</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tabr - Registro</ion-title>
+    </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </ion-header>
+
+  <ion-card>
+    <ion-list>
+      <!-- Item Name -->
+      <ion-item>
+        <ion-input labelPlacement="stacked" [clearInput]="true" label="Nombre Completo" placeholder="John Doe"></ion-input>
+      </ion-item>
+      <!-- Item Birth -->
+      <ion-item>
+        <ion-label position="stacked">Fecha de nacimiento</ion-label>
+        <ion-input 
+          type="date" 
+          [(ngModel)]="selectedDate" 
+          placeholder="Selecciona una fecha">
+        </ion-input>
+      </ion-item>
+      <!-- Item Email -->
+      <ion-item>
+        <ion-input labelPlacement="stacked" [clearInput]="true" label="Correo Electronico" placeholder="BloodPoint@domain.com"></ion-input>
+      </ion-item>
+      <!-- Item Password -->
+      <ion-item>
+        <ion-input labelPlacement="stacked" type="password" label="Contraseña" placeholder="DonaresGratis">
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </ion-item>
+      <!-- Item Sexo Biologico -->
+      <ion-item>
+        <ion-grid [fixed]="true">
+          <ion-row>
+            <ion-col>
+              <ion-item>
+                <ion-select label="Sexo Biologico">
+                  <ion-select-option value="H">Hombre</ion-select-option>
+                  <ion-select-option value="M">Mujer</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+      <!-- Item Numero Contacto -->
+            <ion-col>
+              <ion-input labelPlacement="stacked" [clearInput]="true" label="Numero de telefono" type="tel" placeholder="569-0000-0000"></ion-input>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+      <!-- Item Tipo de sangre -->
+      <ion-item>
+        <ion-select label="Tipo de sangre">
+          <ion-select-option value="O -">O -</ion-select-option>
+          <ion-select-option value="O +">O +</ion-select-option>
+          <ion-select-option value="A -">A -</ion-select-option>
+          <ion-select-option value="A +">A +</ion-select-option>
+          <ion-select-option value="B -">B -</ion-select-option>
+          <ion-select-option value="B +">B +</ion-select-option>
+          <ion-select-option value="AB -">AB -</ion-select-option>
+          <ion-select-option value="AB +">AB +</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <!-- Item Donacion Anterior -->
+      <ion-item>
+        <ion-grid>
+          <ion-label>¿Has donado sangre antes?</ion-label>
+          <ion-segment label="¿Has donado sangre antes?" value="default">
+            <ion-segment-button value="default">
+              <ion-label>Si</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="segment">
+              <ion-label>No</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </ion-grid>
+      </ion-item>
+      <!-- Item Terminos y Condiciones -->
+       <ion-item>
+        <ion-checkbox>Acepto los términos y condiciones</ion-checkbox>
+       </ion-item>
+       <!-- Item Notificacion de urgencia -->
+       <ion-item>
+        <ion-checkbox>Deseo recibir alertas urgentes</ion-checkbox>
+       </ion-item>
+       <!-- Item Boton Registrarse -->
+    </ion-list>
+    <ion-card>
+      <ion-button type="submit" expand="block" >Registrarse</ion-button>
+    </ion-card>
+  </ion-card>
+</ion-content>

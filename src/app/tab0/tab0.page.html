@@ -1,0 +1,41 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Tab 0 - Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tab 0 - Login</ion-title>
+    </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </ion-header>
+
+  <ion-card>
+    <ion-card-content>
+      <ion-list>
+        <!-- Item Email -->
+        <ion-item>
+          <ion-input labelPlacement="stacked" label="Correo Electronico" placeholder="BloodPoint@domain.com"></ion-input>
+        </ion-item>
+        <!-- Item Password -->
+        <ion-item>
+          <ion-input labelPlacement="stacked" type="password" label="Contraseña">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+      </ion-list>
+      <!-- Item Boton Iniciar Sesion -->
+      <ion-card>
+        <ion-button type="submit" expand="block" >Iniciar Sesión</ion-button>
+      </ion-card>
+      <!-- Item Nav/Rounterlink -->
+      <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
+        <ion-button fill="clear">Registrarse</ion-button>
+        <ion-button fill="clear">Recuperar Contrase;a</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
