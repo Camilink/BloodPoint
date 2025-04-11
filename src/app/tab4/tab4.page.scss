@@ -1,0 +1,11 @@
+.custom-thumbnail {
+    width: 60px; // Tamaño estándar de ion-thumbnail
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .custom-thumbnail i {
+    font-size: 26px; // Ajusta esto según necesites que se vea más grande o más pequeño
+  }
