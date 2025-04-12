@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { IonHeader } from "@ionic/angular/standalone";
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 @Component({
-  selector: 'app-tab4',
-  templateUrl: './tab4.page.html',
-  styleUrls: ['./tab4.page.scss'],
+  selector: 'app-tabb',
+  templateUrl: './tabb.page.html',
+  styleUrls: ['./tabb.page.scss'],
   standalone: true,
   imports: [IonicModule, RouterModule]
 })
-export class Tab4Page implements OnInit {
+export class TabbPage implements OnInit {
 
   constructor() { }
 

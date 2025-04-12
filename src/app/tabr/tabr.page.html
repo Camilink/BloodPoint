@@ -2,6 +2,7 @@
   <ion-toolbar>
     <ion-title>Tabr - Registro</ion-title>
   </ion-toolbar>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -49,7 +50,7 @@
                 </ion-select>
               </ion-item>
             </ion-col>
-      <!-- Item Numero Contacto -->
+        <!-- Item Numero Contacto -->
             <ion-col>
               <ion-input labelPlacement="stacked" [clearInput]="true" label="Numero de telefono" type="tel" placeholder="569-0000-0000"></ion-input>
             </ion-col>
@@ -94,7 +95,7 @@
        <!-- Item Boton Registrarse -->
     </ion-list>
     <ion-card>
-      <ion-button type="submit" expand="block" >Registrarse</ion-button>
+      <ion-button expand="block" [routerLink]="['/tab0']">Registrarse</ion-button>
     </ion-card>
   </ion-card>
 </ion-content>

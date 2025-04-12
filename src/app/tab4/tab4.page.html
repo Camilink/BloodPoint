@@ -15,9 +15,10 @@
   <!-- Item Avatar -->
   <ion-grid>
     <ion-row class="ion-justify-content-center">
-      <ion-col size="auto">
-        <ion-avatar>
-          <img alt="Silhouette of a person's head" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+      <ion-col size="auto" class="ion-text-center">
+        <h1>Perfil</h1>
+        <ion-avatar class="static-avatar">
+          <img alt="Avatar" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
         </ion-avatar>
       </ion-col>
     </ion-row>
@@ -26,18 +27,18 @@
   <ion-grid [fixed]="true">
     <ion-list>
         <!-- Item Editar Perfil -->
-      <ion-item button>
-        <ion-thumbnail slot="start">
-          <div class="custom-thumbnail">
-            <i class="fa-solid fa-wrench"></i>
-          </div>
-        </ion-thumbnail>
-        <ion-label>
-          <p><strong>Editar Perfil</strong></p>
-        </ion-label>
-      </ion-item>
+        <ion-item button [routerLink]="['/tabs/tabedit']">
+          <ion-thumbnail slot="start">
+            <div class="custom-thumbnail">
+              <i class="fa-solid fa-wrench"></i>
+            </div>
+          </ion-thumbnail>
+          <ion-label>
+            <p><strong>Editar Perfil</strong></p>
+          </ion-label>
+        </ion-item>
       <!-- Item Historial -->
-      <ion-item button>
+      <ion-item button [routerLink]="['/tabs/tabh']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-bookmark"></i>
@@ -48,7 +49,7 @@
         </ion-label>
       </ion-item>
         <!-- Item Logros -->
-      <ion-item button>
+      <ion-item button [routerLink]="['/tabs/tabl']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-medal"></i>
@@ -59,7 +60,7 @@
         </ion-label>
       </ion-item>
         <!-- Item Solicitud Donacion -->
-      <ion-item button>
+      <ion-item button [routerLink]="['/tabs/tabd']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-droplet"></i>
@@ -70,7 +71,7 @@
         </ion-label>
       </ion-item>
         <!-- Item Ayuda -->
-      <ion-item button>
+      <ion-item button [routerLink]="['/tabs/tabb']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-circle-info"></i>
@@ -81,7 +82,7 @@
         </ion-label>
       </ion-item>
         <!-- Item Logout -->
-      <ion-item button>
+      <ion-item button [routerLink]="['/tab0']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-right-from-bracket fa-flip-both"></i>

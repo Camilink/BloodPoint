@@ -4,17 +4,16 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { Tab4PageRoutingModule } from './tab4-routing.module';
-import { RouterModule } from '@angular/router';
-import { Tab4Page } from './tab4.page';
+import { DetalleshPageRoutingModule } from './detallesh-routing.module';
+
+import { DetalleshPage } from './detallesh.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    Tab4PageRoutingModule,
-    RouterModule
+    DetalleshPageRoutingModule
   ],
 })
-export class Tab4PageModule {}
+export class DetalleshPageModule {}

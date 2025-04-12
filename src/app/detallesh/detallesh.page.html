@@ -1,0 +1,103 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Detallesh - Detalle de Historial</ion-title>
+  </ion-toolbar>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Detallesh - Detalle de Historial</ion-title>
+    </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </ion-header>
+
+  <ion-grid class="ion-padding">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size-md="8" size-sm="12" class="ion-text-center">
+        <ion-list>
+          <!-- Header con botón volver -->
+          <ion-item lines="none">
+            <ion-buttons slot="start">
+              <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
+            </ion-buttons>
+            <ion-label>
+              <h1 class="ion-text-center">Detalle de Historial</h1>
+            </ion-label>
+          </ion-item>
+          <!-- Lista de donaciones -->
+          <ion-list>
+            <ion-item>
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>Direccion:</h3>
+                <p>Copiapo 234</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-regular fa-clock"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>Fecha:</h3>
+                <p>Miercoles 2 de abril de 2025</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-droplet"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>Tipo de sangre:</h3>
+                <p>O +</p>
+              </ion-label>
+            </ion-item>
+            <ion-item>
+              <!-- Item Tipo de donacion -->
+              <ion-col>
+                <ion-label>Tipo de Donación</ion-label>
+              </ion-col>
+              <ion-grid [fixed]="true">
+                <ion-row>
+                  <ion-col>
+                    <ion-item>
+                      <ion-select label="Tipo de Donación">
+                        <ion-select-option value="A">Altruista</ion-select-option>
+                        <ion-select-option value="R">Reposicion</ion-select-option>
+                      </ion-select>
+                    </ion-item>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-item>
+            
+            <ion-item>
+              <!-- Item Cantidad de donacion -->
+              <ion-col>
+                <ion-label>Cantidad:</ion-label>
+              </ion-col>
+              <ion-grid [fixed]="true">
+                <ion-row>
+                  <ion-col>
+                    <ion-label>
+                      450 ML
+                    </ion-label>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-item>
+          </ion-list>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

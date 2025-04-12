@@ -1,0 +1,87 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Tabh - Historial de Donaciones</ion-title>
+  </ion-toolbar>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tabh - Historial de Donaciones</ion-title>
+    </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </ion-header>
+  
+  <ion-grid class="ion-padding">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size-md="8" size-sm="12" class="ion-text-center">
+        <ion-list>
+          <!-- Header con botón volver -->
+          <ion-item lines="none">
+            <ion-buttons slot="start">
+              <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
+            </ion-buttons>
+            <ion-label>
+              <h1 class="ion-text-center">Historial de Donaciones</h1>
+            </ion-label>
+          </ion-item>
+          <!-- Lista de donaciones -->
+          <ion-list>
+            <ion-item button [routerLink]="['/tabs/detallesh']">
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-droplet"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>2 de Abril de 2025</h3>
+                <p>Centro de Atención Habitual</p>
+              </ion-label>
+              <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+            </ion-item>
+  
+            <ion-item button [routerLink]="['/tabs/detallesh']">
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-droplet"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>18 de enero de 2025</h3>
+                <p>Donación Habitual</p>
+              </ion-label>
+              <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+            </ion-item>
+  
+            <ion-item button [routerLink]="['/tabs/detallesh']">
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-droplet"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>6 de marzo 2024</h3>
+                <p>Donación de reposición</p>
+              </ion-label>
+              <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+            </ion-item>
+  
+            <ion-item button [routerLink]="['/tabs/detallesh']">
+              <ion-thumbnail slot="start">
+                <div class="custom-thumbnail">
+                  <i class="fa-solid fa-droplet"></i>
+                </div>
+              </ion-thumbnail>
+              <ion-label>
+                <h3>3 de noviembre de 2022</h3>
+                <p>Donación de reposición</p>
+              </ion-label>
+              <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+            </ion-item>
+          </ion-list>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
