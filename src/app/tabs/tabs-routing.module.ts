@@ -53,7 +53,7 @@ const routes: Routes = [
       },
       {
         path: 'tabia',
-        loadChildren: () => import('../tabia/tabia.module').then( m => m.TabiaPageModule)
+        loadComponent: () => import('../tabia/tabia.page').then(m => m.TabiaPage)
       },
     ]
   },
