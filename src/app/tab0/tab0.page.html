@@ -15,28 +15,54 @@
 
   <ion-card>
     <ion-card-content>
-      <ion-list>
-        <!-- Item Email -->
-        <ion-item>
-          <ion-input labelPlacement="stacked" label="Correo Electronico" placeholder="BloodPoint@domain.com"></ion-input>
-        </ion-item>
-        <!-- Item Password -->
-        <ion-item>
-          <ion-input labelPlacement="stacked" type="password" label="Contraseña">
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
-      </ion-list>
-      <!-- Item Boton Iniciar Sesion -->
-      <ion-card>
-        <ion-button expand="block" [routerLink]="['/tabs/tab1']">Iniciar Sesión</ion-button>
-      </ion-card>
-      <!-- Item Nav/Rounterlink -->
-      <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
-        <ion-button [routerLink]="['/tabr']" fill="clear">Registrarse</ion-button>
-        <ion-button fill="clear">Recuperar Contrase;a</ion-button>
-      </div>
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+        <ion-list>
+          <!-- Item Email -->
+          <ion-item>
+            <ion-input 
+              labelPlacement="stacked" 
+              label="Correo Electronico" 
+              placeholder="BloodPoint@domain.com"
+              [(ngModel)]="credentials.email"
+              name="email"
+              type="email"
+              #email="ngModel"
+              required>
+            </ion-input>
+          </ion-item>
+          <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error-message">
+            <ion-text color="danger">Email es requerido</ion-text>
+          </div>
+
+          <!-- Item Password -->
+          <ion-item>
+            <ion-input 
+              labelPlacement="stacked" 
+              type="password" 
+              label="Contraseña"
+              [(ngModel)]="credentials.contrasena"
+              name="contrasena"
+              #password="ngModel"
+              required>
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+          <div *ngIf="password.invalid && (password.dirty || password.touched)" class="error-message">
+            <ion-text color="danger">Contraseña es requerida</ion-text>
+          </div>
+        </ion-list>
+        
+        <!-- Item Boton Iniciar Sesion -->
+        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid">
+          Iniciar Sesion
+        </ion-button>
+        
+        <!-- Item Nav/Routerlink -->
+        <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
+          <ion-button [routerLink]="['/tabr']" fill="clear">Registrarse</ion-button>
+          <ion-button fill="clear">Recuperar Contrasena</ion-button>
+        </div>
+      </form>
     </ion-card-content>
   </ion-card>
-
 </ion-content>
