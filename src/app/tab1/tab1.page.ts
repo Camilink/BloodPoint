@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-tab1',
@@ -6,8 +7,19 @@ import { Component } from '@angular/core';
   styleUrls: ['tab1.page.scss'],
   standalone: false,
 })
-export class Tab1Page {
+export class Tab1Page implements OnInit {
 
-  constructor() {}
+  donantes: any[] = [];
 
+  constructor(private ApiService: ApiService) {}
+
+  ngOnInit() {
+    this.cargarDonantes();
+  }
+
+  cargarDonantes() {
+    this.ApiService.getDonantes().subscribe(data => {
+      this.donantes = data;
+    });
+  }
 }
