@@ -1,0 +1,100 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Donar
+    </ion-title>
+  </ion-toolbar>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Donar</ion-title>
+    </ion-toolbar>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </ion-header>
+  
+  
+  <!-- Item Buscador -->
+  <div class="center-wrapper">
+    <ion-searchbar show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
+  </div>
+  <!-- Seccion de Ubicacion y Horario -->
+    <ion-grid [fixed]="true">
+      <ion-row>
+        <!-- Item Seleccion de Ubicacion -->
+        <ion-col>
+          <ion-item>
+            <ion-select label="Ubicacion">
+             <ion-select-option value="1">Copiapo 232</ion-select-option>
+             <ion-select-option value="2">Concha y Toro 125</ion-select-option>
+             <ion-select-option value="3">Providencia 2001</ion-select-option>
+             <ion-select-option value="4">Republica 805</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+        <!-- Item Seleccion de Horario -->
+        <ion-col>
+          <ion-item>
+           <ion-select label="Horario">
+            <ion-select-option value="1">Lunes 8:00 - 10:00</ion-select-option>
+            <ion-select-option value="2">Miercoles 11:30 - 14:00</ion-select-option>
+            <ion-select-option value="3">Viernes 12:30:00 - 15:00</ion-select-option>
+            <ion-select-option value="4">Sabado 10:00 - 12:00</ion-select-option>
+           </ion-select>
+         </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <!-- Item Puntos abiertos -->
+    <div class="center-toggle">
+      <ion-item>
+      <ion-toggle> Mostrar solo abiertos </ion-toggle>
+    </ion-item>
+    </div>
+  <!-- Item Centro de donacion Boton Detalles -->
+  <ion-grid [fixed]="true">
+    <ion-row class="ion-justify-content-center ion-align-items-center">
+      <ion-col size-md="6">
+        <ion-list>
+          <ion-item>
+            <ion-label class="ion-text-center">
+              <h3>Centro de Donación A</h3>
+              <p>Copiapo 123</p>
+              <p><i class="fa-solid fa-circle" style="color: #00ff04;"></i> Hoy: 10:00 - 12:00</p>
+              <ion-button [routerLink]="['/menu/detalles']">Ver Detalles</ion-button>
+            </ion-label>
+          </ion-item>
+    
+          <ion-item>
+            <ion-label class="ion-text-center">
+              <h3>Centro de Donación B</h3>
+              <p>Calle 234</p>
+              <p><i class="fa-solid fa-circle" style="color: #ff0000;"></i> Hoy: 09:00 - 13:00</p>
+              <ion-button disabled="">Ver Detalles</ion-button>
+            </ion-label>
+          </ion-item>
+    
+          <ion-item>
+            <ion-label class="ion-text-center">
+              <h3>Centro de Donación C</h3>
+              <p>Calle 789</p>
+              <p><i class="fa-solid fa-circle" style="color: #ff0000;"></i> Hoy: 07:30 - 10:00</p>
+              <ion-button disabled="">Ver Detalles</ion-button>
+            </ion-label>
+          </ion-item>
+    
+          <ion-item>
+            <ion-label class="ion-text-center">
+              <h3>Centro de Donación D</h3>
+              <p>Calle 654</p>
+              <p><i class="fa-solid fa-circle" style="color: #00ff04;"></i> Hoy: 12:00 - 14:00</p>
+              <ion-button disabled="">Ver Detalles</ion-button>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

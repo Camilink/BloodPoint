@@ -4,68 +4,68 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'tab0',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
   {
-    path: 'tabs',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+    path: 'menu',
+    loadChildren: () => import('./menu/menu.module').then(m => m.MenuPageModule)
   },
   {
-    path: 'tab0',
-    loadChildren: () => import('./tab0/tab0.module').then(m => m.Tab0PageModule)
+    path: 'login',
+    loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule)
   },
   {
-    path: 'tab1',
-    loadChildren: () => import('./tab1/tab1.module').then(m => m.Tab1PageModule)
+    path: 'index',
+    loadChildren: () => import('./index/index.module').then(m => m.IndexPageModule)
   },
   {
-    path: 'tab2',
-    loadChildren: () => import('./tab2/tab2.module').then(m => m.Tab2PageModule)
+    path: 'puntosdonacion',
+    loadChildren: () => import('./puntosdonacion/puntosdonacion.module').then(m => m.PuntosdonacionPageModule)
   },
   {
-    path: 'tab3',
-    loadChildren: () => import('./tab3/tab3.module').then(m => m.Tab3PageModule)
+    path: 'notificacion',
+    loadChildren: () => import('./notificacion/notificacion.module').then(m => m.NotificacionPageModule)
   },
   {
-    path: 'tab4',
-    loadChildren: () => import('./tab4/tab4.module').then(m => m.Tab4PageModule)
+    path: 'perfil',
+    loadChildren: () => import('./perfil/perfil.module').then(m => m.PerfilPageModule)
   },
   {
     path: 'detalles',
     loadChildren: () => import('./detalles/detalles.module').then(m => m.DetallesPageModule)
   },
   {
-    path: 'tabedit',
-    loadChildren: () => import('./tabedit/tabedit.module').then(m => m.TabeditPageModule)
+    path: 'editarperfil',
+    loadChildren: () => import('./editarperfil/editarperfil.module').then(m => m.EditarperfilPageModule)
   },
   {
-    path: 'tabh',
-    loadChildren: () => import('./tabh/tabh.module').then(m => m.TabhPageModule)
+    path: 'historialdonacion',
+    loadChildren: () => import('./historialdonacion/historialdonacion.module').then(m => m.HistorialdonacionPageModule)
   },
   {
     path: 'detallesh',
     loadChildren: () => import('./detallesh/detallesh.module').then(m => m.DetalleshPageModule)
   },
   {
-    path: 'tabl',
-    loadChildren: () => import('./tabl/tabl.module').then(m => m.TablPageModule)
+    path: 'logros',
+    loadChildren: () => import('./logros/logros.module').then(m => m.LogrosPageModule)
   },
   {
-    path: 'tabd',
-    loadChildren: () => import('./tabd/tabd.module').then(m => m.TabdPageModule)
+    path: 'solicitardonacion',
+    loadChildren: () => import('./solicitardonacion/solicitardonacion.module').then(m => m.SolicitardonacionPageModule)
   },
   {
-    path: 'tabia',
-    loadChildren: () => import('./tabia/tabia.module').then(m => m.TabiaPageModule)
+    path: 'chatbot',
+    loadChildren: () => import('./chatbot/chatbot.module').then(m => m.ChatbotPageModule)
   },
   {
-    path: 'tabb',
-    loadChildren: () => import('./tabb/tabb.module').then(m => m.TabbPageModule)
+    path: 'ayudabp',
+    loadChildren: () => import('./ayudabp/ayudabp.module').then(m => m.AyudabpPageModule)
   },
   {
-    path: 'tabr',
-    loadChildren: () => import('./tabr/tabr.module').then(m => m.TabrPageModule)
+    path: 'registrarse',
+    loadChildren: () => import('./registrarse/registrarse.module').then(m => m.RegistrarsePageModule)
   },
 ];
 
