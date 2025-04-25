@@ -13,8 +13,21 @@
   </ion-header>
 
   <ion-card>
-    <form #registroForm="ngForm" (ngSubmit)="registrarDonante(registroForm.value)">
+    <form (ngSubmit)="registrarDonante(formData)" #form="ngForm">
       <ion-list>
+        <!-- Item RUT -->
+        <ion-item>
+          <ion-input 
+            name="rut"
+            [(ngModel)]="formData.rut"
+            labelPlacement="stacked" 
+            [clearInput]="true" 
+            label="RUT" 
+            placeholder="12.345.678-9">
+          </ion-input>
+        </ion-item>
+
+
         <!-- Item Name -->
         <ion-item>
           <ion-input 
@@ -47,6 +60,18 @@
             [clearInput]="true" 
             label="Correo Electronico" 
             placeholder="BloodPoint@domain.com">
+          </ion-input>
+        </ion-item>
+  
+        <!-- Item Contraseña -->
+        <ion-item>
+          <ion-input 
+            name="password"
+            [(ngModel)]="formData.password"
+            labelPlacement="stacked"
+            type="password"
+            label="Contraseña"
+            placeholder="Ingrese su contraseña">
           </ion-input>
         </ion-item>
 

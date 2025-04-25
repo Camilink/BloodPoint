@@ -21,17 +21,16 @@
           <ion-item>
             <ion-input 
               labelPlacement="stacked" 
-              label="Correo Electronico" 
-              placeholder="BloodPoint@domain.com"
-              [(ngModel)]="credentials.email"
-              name="email"
-              type="email"
-              #email="ngModel"
-              required>
+              label="RUT" 
+              placeholder="12.345.678-9"
+              [(ngModel)]="credentials.rut"
+              name="rut"
+              required
+              #rut="ngModel">
             </ion-input>
           </ion-item>
-          <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error-message">
-            <ion-text color="danger">Email es requerido</ion-text>
+          <div *ngIf="rut.invalid && (rut.dirty || rut.touched)" class="error-message">
+            <ion-text color="danger">El RUT es requerido</ion-text>
           </div>
 
           <!-- Item Password -->
@@ -40,11 +39,10 @@
               labelPlacement="stacked" 
               type="password" 
               label="Contraseña"
-              [(ngModel)]="credentials.contrasena"
-              name="contrasena"
-              #password="ngModel"
-              required>
-              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+              [(ngModel)]="credentials.password"
+              name="password"
+              required
+              #password="ngModel">
             </ion-input>
           </ion-item>
           <div *ngIf="password.invalid && (password.dirty || password.touched)" class="error-message">

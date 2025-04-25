@@ -1,4 +1,4 @@
-export interface Donante {
+export interface DonanteFormulario {
     id?: number;
     nombreCompleto: string;
     correoElectronico: string;

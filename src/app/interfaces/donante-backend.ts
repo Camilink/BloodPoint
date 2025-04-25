@@ -1,14 +1,3 @@
-export interface LoginCredentials {
-    rut: string;
-    password: string;
-  }  
-
-  export interface LoginResponse {
-    status: string;
-    token: string;
-    user_id: number;
-  }  
-
 export interface Donante {
     id_donante: number;
     rut: string;
@@ -24,4 +13,5 @@ export interface Donante {
     dispo_dia_donacion: string;
     nuevo_donante: boolean;
     noti_emergencia: boolean;
-}
+  }
+  

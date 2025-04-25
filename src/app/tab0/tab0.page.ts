@@ -15,9 +15,10 @@ import { ToastController, LoadingController } from '@ionic/angular';
 })
 export class Tab0Page {
   credentials: LoginCredentials = {
-    email: '',
-    contrasena: ''
+    rut: '',
+    password: ''
   };
+  
 
   constructor(
     private apiService: ApiService,
@@ -27,10 +28,11 @@ export class Tab0Page {
   ) {}
 
   async onLogin() {
-    if (!this.credentials.email || !this.credentials.contrasena) {
+    if (!this.credentials.rut || !this.credentials.password) {
       this.showToast('Por favor complete todos los campos', 'warning');
       return;
     }
+    
 
     const loading = await this.loadingController.create({
       message: 'Iniciando sesión...'
@@ -40,10 +42,13 @@ export class Tab0Page {
     try {
       this.apiService.login(this.credentials).subscribe({
         next: async (response: LoginResponse) => {
+          console.log('Respuesta del backend:', response); // Log de la respuesta
           await loading.dismiss();
           
           if (response && response.status === 'success') {
-            localStorage.setItem('userData', JSON.stringify(response.data[0]));
+            localStorage.setItem('authToken', response.token);
+            localStorage.setItem('userId', response.user_id.toString());
+
             await this.showToast('Login exitoso', 'success');
             await this.router.navigate(['/tabs/tab1']);
           } else {

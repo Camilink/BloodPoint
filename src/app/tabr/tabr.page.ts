@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
-import { Donante } from '../interfaces/donante';
+import { DonanteFormulario } from '../interfaces/donante-formulario';
 
 @Component({
   selector: 'app-tabr',
@@ -14,7 +14,7 @@ import { Donante } from '../interfaces/donante';
 })
 
 export class TabrPage implements OnInit {
-  formData: Partial<Donante> = {
+  formData: Partial<DonanteFormulario> & { password?: string, rut?: string, direccion?: string, comuna?: string } = {
     nombreCompleto: '',
     correoElectronico: '',
     fechaNacimiento: '',
@@ -23,35 +23,63 @@ export class TabrPage implements OnInit {
     sexoBiologico: 'H',
     nuevoDonante: true,
     aceptaTerminos: false,
-    recibirNotificaciones: false
+    recibirNotificaciones: false,
+    password: '',
+    rut: '',
+    direccion: '',
+    comuna: ''
   };
+  
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private toastController: ToastController,
+  ) {}
 
-  registrarDonante(formValue: any) {
-    const nuevoDonante: Donante = {
-      nombreCompleto: formValue.nombreCompleto,
-      correoElectronico: formValue.correoElectronico,
-      fechaNacimiento: formValue.fechaNacimiento,
-      tipoSangre: formValue.tipoSangre,
-      telefono: formValue.telefono,
-      sexoBiologico: formValue.sexoBiologico,
-      nuevoDonante: formValue.nuevoDonante,
-      aceptaTerminos: formValue.aceptaTerminos,
-      recibirNotificaciones: formValue.recibirNotificaciones
+  async registrarDonante(formValue: any) {
+    const nuevoDonante = {
+      rut: formValue.rut,
+      email: formValue.correoElectronico,
+      contrasena: formValue.password,
+      nombre_completo: formValue.nombreCompleto,
+      direccion: formValue.direccion || "Sin dirección",
+      comuna: formValue.comuna || "Santiago",
+      fono: formValue.telefono,
+      fecha_nacimiento: formValue.fechaNacimiento,
+      nacionalidad: "Chilena",
+      tipo_sangre: formValue.tipoSangre,
+      dispo_dia_donacion: "Lunes",
+      nuevo_donante: formValue.nuevoDonante,
+      noti_emergencia: formValue.recibirNotificaciones
     };
-
-    this.apiService.crearDonante(nuevoDonante).subscribe({
-      next: (response) => {
-        console.log('Donante registrado:', response);
-        // Aquí puedes agregar navegación o mensaje de éxito
-      },
-      error: (error) => {
-        console.error('Error al registrar:', error);
-        // Aquí puedes mostrar un mensaje de error
-      }
-    });
+  
+    try {
+      this.apiService.registrarUsuario(nuevoDonante).subscribe({
+        next: async (res) => {
+          console.log('Registrado correctamente:', res);
+          await this.showToast('Registro exitoso', 'success');
+          // Redirigir si deseas
+        },
+        error: async (err) => {
+          console.error('Error en el registro:', err);
+          await this.showToast('Error al registrar: ' + err, 'danger');
+        }
+      });
+    } catch (err) {
+      await this.showToast('Error inesperado', 'danger');
+    }
   }
+  
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+  
 
   ngOnInit() {}
 }
