@@ -6,106 +6,81 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Mis Logros</ion-title>
-    </ion-toolbar>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </ion-header>
+  <div class="ovalo ovalotop"></div>
+  <div class="ovalo ovalomid"></div>
 
-  <ion-grid class="ion-padding">
-    <ion-row class="ion-justify-content-center">
-      <ion-col size-md="8" size-sm="12">
-        <ion-list>
-          <!-- Header con botón volver -->
-          <ion-item lines="none">
-            <ion-buttons slot="start">
-              <ion-back-button defaultHref="/menu/perfil"></ion-back-button>
-            </ion-buttons>
-            <ion-label>
-              <h1 class="ion-text-center">Mis Logros</h1>
-            </ion-label>
-          </ion-item>
-          <!--  -->
-          <ion-item>
-            <ion-col>
-              <ion-label class="ion-text-center">Total Donados: 1800mL</ion-label>
-            </ion-col>
-            <ion-col>
-              <ion-label class="ion-text-center">Estimacion de vidas salvadas: 9</ion-label>
-            </ion-col>
-          </ion-item>
-          <!-- Lista de donaciones -->
-          <ion-list>
-            <ion-item>
-              <ion-thumbnail slot="start" aria-disabled="true">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-droplet"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h3>Primera Donacion</h3>
-              </ion-label>
-              <ion-checkbox slot="end" [checked]="true"></ion-checkbox>
-            </ion-item>
-  
-            <ion-item>
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-calendar-days"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h3>Constancia</h3>
-              </ion-label>
-              <ion-checkbox slot="end" [checked]="true"></ion-checkbox>
-            </ion-item>
-  
-            <ion-item>
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h3>Respuestas Urgente</h3>
-              </ion-label>
-              <ion-checkbox slot="end" [checked]="true"></ion-checkbox>
-            </ion-item>
-  
-            <ion-item>
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-people-group"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h3>Donacion grupal</h3>
-              </ion-label>
-              <ion-checkbox slot="end" disabled="true"></ion-checkbox>
-            </ion-item>
+  <!-- Header with back button -->
+  <div class="header-section">
+    <ion-back-button defaultHref="/menu/perfil" text="" icon="arrow-back"></ion-back-button>
+    <h1>Mis logros</h1>
+  </div>
 
-            <ion-item>
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-bullhorn"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h3>Promotor bloodpoint</h3>
-              </ion-label>
-              <ion-checkbox slot="end" disabled="true"></ion-checkbox>
-            </ion-item>
-          </ion-list>
-          <!-- Item Sharing -->
-          <ion-row class="ion-justify-content-center ion-margin-top">
-            <ion-col size="auto" class="ion-text-center">
-              <ion-button (click)="share()">Compartir mis logros</ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-list>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <!-- Stats Section -->
+  <div class="stats-section">
+    <h2>Total donado: 1800mL</h2>
+    <h2>Estimacion de vidas salvadas: 9</h2>
+  </div>
 
+  <!-- Achievements List -->
+  <div class="achievements-list">
+    <!-- Achievement Item 1 -->
+    <div class="achievement-item">
+      <div class="status-circle">
+        <i class="fas fa-check"></i>
+      </div>
+      <div class="achievement-content">
+        <i class="fa-solid fa-droplet"></i>
+        <span>Primera donacion</span>
+      </div>
+    </div>
+
+    <!-- Achievement Item 2 -->
+    <div class="achievement-item">
+      <div class="status-circle">
+        <i class="fas fa-check"></i>
+      </div>
+      <div class="achievement-content">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Constancia</span>
+      </div>
+    </div>
+
+    <!-- Achievement Item 3 -->
+    <div class="achievement-item">
+      <div class="status-circle">
+        <i class="fas fa-check"></i>
+      </div>
+      <div class="achievement-content">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Respuesta urgente</span>
+      </div>
+    </div>
+
+    <!-- Achievement Item 4 -->
+    <div class="achievement-item locked">
+      <div class="status-circle">
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="achievement-content">
+        <i class="fa-solid fa-people-group"></i>
+        <span>Donacion grupal</span>
+      </div>
+    </div>
+
+    <!-- Achievement Item 5 -->
+    <div class="achievement-item locked">
+      <div class="status-circle">
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="achievement-content">
+        <i class="fa-solid fa-bullhorn"></i>
+        <span>Promotor bloodpoint</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Button -->
+  <ion-button expand="block" class="share-button" (click)="share()">
+    compartir mis logros
+  </ion-button>
 </ion-content>

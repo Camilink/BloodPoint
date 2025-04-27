@@ -6,93 +6,49 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">ChatBot Diagflow IA</ion-title>
-    </ion-toolbar>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </ion-header>
+  <div class="chat-container">
+    <!-- Item | Boton para volver a la pag anterior -->
+    <div class="header-section">
+      <ion-back-button defaultHref="/menu/ayudabp" text="" icon="arrow-back"></ion-back-button>
+      <h1>Chat automatizado</h1>
+    </div>
 
-  <ion-grid class="ion-padding">
-    <ion-row class="ion-justify-content-center">
-      <ion-col size-md="8" size-sm="12" class="ion-text-center">
-        <ion-list>
-          <!-- Header con botón volver -->
-          <ion-item lines="none">
-            <ion-buttons slot="start">
-              <ion-back-button defaultHref="/menu/ayudabp"></ion-back-button>
-            </ion-buttons>
-            <ion-label>
-              <h1 class="ion-text-center">Chat Automatizado</h1>
-            </ion-label>
-          </ion-item>
-          <!-- Lista de QA -->
-          <ion-list>
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-droplet"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h2>¿Quién puede donar sangre?</h2>
-              </ion-label>
-            </ion-item>
-          
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-droplet"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h2>¿Cuánto debo esperar entre donaciones?</h2>
-              </ion-label>
-            </ion-item>
-          
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-droplet"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h2>¿Es seguro donar sangre?</h2>
-              </ion-label>
-            </ion-item>
+    <!-- Item | Lista pregunta ejemplos -->
+    <div class="questions-list">
+      <div class="question-bubble" style="background-color: #fff2f2;">
+        <span style="color: grey;" >¿Quien puede donar sangre?</span>
+      </div>
 
-            <ion-item lines="none">
-              <ion-thumbnail slot="start">
-                <div class="custom-thumbnail">
-                  <i class="fa-solid fa-droplet"></i>
-                </div>
-              </ion-thumbnail>
-              <ion-label>
-                <h2>¿Qué debo hacer después de donar?</h2>
-              </ion-label>
-            </ion-item>
-          </ion-list>
-          <!-- Item ChqtBot Simulacion -->
-          <ion-card class="chat-card">
-            <ion-card-content>
-              <div class="chat-message">
-                <ion-avatar slot="start">
-                  <i class="fas fa-robot" style="font-size: 40px; color: #4CAF50;"></i>
-                </ion-avatar>
-                <div class="message">
-                  <ion-textarea>¡Hola! Soy tu asistente robot. ¿En qué puedo ayudarte hoy?</ion-textarea>
-                </div>
-              </div>
-            </ion-card-content>
-            <!-- Item Boton Enviar Mensaje -->
-            <ion-button color="success">
-              <i class="fa-solid fa-comments" style="margin-right: 8px;"></i>Enviar
-            </ion-button>
-          </ion-card>
-        </ion-list>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      <div class="question-bubble" style="background-color: #fff2f2;">
+        <span style="color: grey;" >¿Cuánto debo esperar entre donaciones?</span>
+      </div>
 
+      <div class="question-bubble" style="background-color: lightcoral;">
+        <span style="color: aliceblue;" >¿Es seguro donar sangre?</span>
+      </div>
 
+      <div class="question-bubble" style="background-color: lightcoral;">
+        <span style="color: aliceblue;" >¿Qué debo hacer después de donar?</span>
+      </div>
+
+      <!-- Mensaje Ejemplo  -->
+      <div class="bot-message">
+        <div class="bot-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+          <p>¡Hola! ¿Tienes dudas al respecto de la donación de sangre? Házmelo saber aquí para guiarte.</p>
+          <p>¿Sabías que una gota de sangre puede salvar una vida?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chatbox -->
+    <div class="input-area">
+      <ion-input placeholder="Escribe un mensaje" class="message-input"></ion-input>
+      <ion-button class="send-button" color="light">
+        Enviar
+      </ion-button>
+    </div>
+  </div>
 </ion-content>

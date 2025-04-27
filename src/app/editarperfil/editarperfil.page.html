@@ -6,56 +6,81 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Editar Perfil</ion-title>
-    </ion-toolbar>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </ion-header>
+  <div class="ovalo ovalotop"></div>
+  <div class="ovalo ovalomid"></div>
 
-  <!-- Foto de perfil -->
+  <!-- Avatar Section -->
   <ion-grid>
     <ion-row class="ion-justify-content-center">
       <ion-col size="auto" class="ion-text-center">
         <h1>Editar Perfil</h1>
-        <!-- Input de imagen oculto -->
-        <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" #fileInput>
-        <!-- Contenedor relativo para posicionar el "+" -->
         <div class="avatar-wrapper" (click)="fileInput.click()">
           <ion-avatar class="center-avatar">
             <img [src]="avatarUrl" alt="Avatar" />
           </ion-avatar>
-          <!-- Botón + encima -->
           <div class="plus-button"><i class="fa-solid fa-camera"></i></div>
         </div>
       </ion-col>
     </ion-row>
   </ion-grid>
-  <!-- Item Formulario Editar Perfil -->
-  <ion-grid [fixed]="true">
-    <ion-list>
-      <!-- Item Name -->
-      <ion-item>
-        <ion-input labelPlacement="stacked" [clearInput]="true" label="Nombre Completo" placeholder="John Doe"></ion-input>
-      </ion-item>
-      <!-- Item Email -->
-      <ion-item>
-        <ion-input labelPlacement="stacked" [clearInput]="true" label="Correo Electronico" placeholder="BloodPoint@domain.com"></ion-input>
-      </ion-item>
-      <!-- Item Sexo Biologico -->
-      <ion-item>
-        <ion-select label="Sexo Biologico (Opcional)">
+
+  <!-- Form Items -->
+  <ion-list>
+    <ion-item button>
+      <ion-thumbnail slot="start">
+        <div class="custom-thumbnail">
+          <i class="fa-solid fa-user" style="color: #b93636;"></i>
+        </div>
+      </ion-thumbnail>
+      <ion-label>
+        <ion-input [clearInput]="true" placeholder="Nombre Completo"></ion-input>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button>
+      <ion-thumbnail slot="start">
+        <div class="custom-thumbnail">
+          <i class="fa-solid fa-envelope" style="color: #b93636;"></i>
+        </div>
+      </ion-thumbnail>
+      <ion-label>
+        <ion-input [clearInput]="true" placeholder="Correo electronico"></ion-input>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button>
+      <ion-thumbnail slot="start">
+        <div class="custom-thumbnail">
+          <i class="fa-solid fa-venus-mars" style="color: #b93636;"></i>
+        </div>
+      </ion-thumbnail>
+      <ion-label>
+        <ion-select placeholder="Sexo biológico (Opcional)" interface="popover">
           <ion-select-option value="H">Hombre</ion-select-option>
           <ion-select-option value="M">Mujer</ion-select-option>
         </ion-select>
-      </ion-item>
-        <!-- Item Numero de contacto -->
-      <ion-item button>
-        <ion-input labelPlacement="stacked" [clearInput]="true" label="Numero de telefono" type="tel" placeholder="569-0000-0000"></ion-input>
-      </ion-item>
-      <!-- Item Tipo de sangre -->
-      <ion-item>
-        <ion-select label="Tipo de sangre">
+      </ion-label>
+    </ion-item>
+
+    <ion-item button>
+      <ion-thumbnail slot="start">
+        <div class="custom-thumbnail">
+          <i class="fa-solid fa-phone" style="color: #b93636;"></i>
+        </div>
+      </ion-thumbnail>
+      <ion-label>
+        <ion-input type="tel" [clearInput]="true" placeholder="Numero de teléfono"></ion-input>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button>
+      <ion-thumbnail slot="start">
+        <div class="custom-thumbnail">
+          <i class="fa-solid fa-droplet" style="color: #b93636;"></i>
+        </div>
+      </ion-thumbnail>
+      <ion-label>
+        <ion-select placeholder="Tipo de sangre" interface="popover">
           <ion-select-option value="O -">O -</ion-select-option>
           <ion-select-option value="O +">O +</ion-select-option>
           <ion-select-option value="A -">A -</ion-select-option>
@@ -65,11 +90,13 @@
           <ion-select-option value="AB -">AB -</ion-select-option>
           <ion-select-option value="AB +">AB +</ion-select-option>
         </ion-select>
-      </ion-item>
-      <br>
-      <ion-segment>
-        <ion-button type="submit">Confirmar</ion-button>
-      </ion-segment>
-    </ion-list>
-  </ion-grid>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" class="confirm-button" type="submit">
+    Confirmar
+  </ion-button>
+
+  <input #fileInput type="file" hidden accept="image/*" (change)="onImageSelected($event)">
 </ion-content>

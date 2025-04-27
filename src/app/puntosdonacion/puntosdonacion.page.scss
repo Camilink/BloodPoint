@@ -1,13 +1,218 @@
-.center-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+ion-content {
+  --background: #ffffff;
+  
+  .center-wrapper {
     padding: 16px;
+    background: #fff2f2;
+    border-radius: 25px;
+    margin: 16px;
+
+    ion-searchbar {
+      --background: #fff2f2;
+      --border-radius: 20px;
+      --placeholder-color: #666;
+      --icon-color: #666;
+    }
   }
 
-.center-toggle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
+  ion-grid {
+    ion-col {
+      ion-item {
+        --background: #fff2f2;
+        border-radius: 25px;
+        margin: 8px;
+
+        ion-select {
+          --placeholder-color: #666;
+          --color: #333333;  // Text color when selected
+          width: 100%;
+          padding: 8px;
+
+          &::part(text) {
+            color: #333333;  // Ensures selected text is dark
+          }
+
+          &::part(icon) {
+            color: #666666;  // Arrow icon color
+          }
+        }
+      }
+    }
+  }
+
+  .center-toggle {
+    padding: 0 16px;
+    margin: 16px 0;
+
+    ion-item {
+      --background: transparent;
+      
+      ion-label {
+        font-weight: 500;
+        color: #333333;
+      }
+
+      ion-toggle {
+        --background: #fff2f2;
+        --background-checked: #e57373;
+        --handle-background: #fff;
+        --handle-background-checked: #fff;
+      }
+    }
+  }
+
+  ion-list {
+    background: transparent;
+    padding: 16px;
+
+    ion-item {
+      --background: #fff2f2;
+      border-radius: 15px;
+      margin-bottom: 16px;
+
+      ion-label {
+        h3 {
+          font-size: 1.2em;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 8px;
+        }
+
+        p {
+          color: #666;
+          margin: 4px 0;
+        }
+
+        ion-button {
+          --background: #e57373;
+          --border-radius: 20px;
+          --padding-start: 24px;
+          --padding-end: 24px;
+          margin-top: 8px;
+
+          &[disabled] {
+            --background: #cccccc;
+          }
+        }
+
+        .fa-circle {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+// Add this to your HTML header
+ion-toolbar {
+  --background: #ffffff;
+}
+
+// Also update the popover interface styling globally
+::ng-deep .select-interface-option {
+  --color: #333333 !important;
+  
+  .select-interface-option-text {
+    color: #333333;
+  }
+}
+
+// Style for the select options popover
+:host ::ng-deep .select-interface-option {
+  --color: #333333 !important;
+  --background: #fff2f2 !important;
+  
+  &.select-interface-option-selected {
+    --background: #e57373 !important;
+    --color: #ffffff !important;
+  }
+}
+
+ion-select::part(placeholder),
+ion-select::part(text) {
+  color: #333333;
+}
+
+.alert-radio-label.sc-ion-alert-md,
+.alert-radio-label.sc-ion-alert-ios {
+  color: #333333;
+}
+
+.select-interface-option .select-interface-option-text {
+  color: #333333;
+}
+
+ion-alert.select-alert {
+  .alert-wrapper {
+    background: #fff2f2;
+    
+    .alert-head {
+      color: #333333;
+    }
+    
+    .alert-radio-group {
+      .alert-radio-label {
+        color: #333333;
+      }
+    }
+  }
+}
+
+.select-item {
+  ion-select {
+    --placeholder-color: #666;
+    
+    &::part(placeholder),
+    &::part(text) {
+      color: #333;
+    }
+  }
+}
+
+// Add these styles for the popover interface
+::ng-deep .select-interface-option {
+  --background: white;
+  --color: #333;
+  
+  .select-interface-option {
+    background: white;
+    color: #333;
+  }
+
+  .select-interface-option:hover {
+    --background: #f5f5f5;
+    background: #f5f5f5;
+  }
+}
+
+::ng-deep ion-popover {
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(185, 54, 54, 0.1);
+  
+  .popover-content {
+    border: 1px solid hsl(0, 76%, 43%);
+  }
+
+  .popover-viewport {
+    background: white;
+  }
+
+  ion-item {
+    --border-color: rgba(185, 54, 54, 0.2);
+    --border-width: 0 0 1px 0;
+    --inner-padding-end: 16px;
+
+    &:last-child {
+      --border-width: 0;
+    }
+
+    &:hover {
+      --background: rgba(185, 54, 54, 0.05);
+    }
+  }
+
+  ion-select-option {
+    color: #333;
+    font-size: 16px;
+  }
 }

@@ -23,10 +23,9 @@
   <!-- Seccion de Ubicacion y Horario -->
     <ion-grid [fixed]="true">
       <ion-row>
-        <!-- Item Seleccion de Ubicacion -->
         <ion-col>
-          <ion-item>
-            <ion-select label="Ubicacion">
+          <ion-item class="select-item">
+            <ion-select placeholder="Ubicación" interface="popover" class="custom-select">
              <ion-select-option value="1">Copiapo 232</ion-select-option>
              <ion-select-option value="2">Concha y Toro 125</ion-select-option>
              <ion-select-option value="3">Providencia 2001</ion-select-option>
@@ -34,10 +33,9 @@
             </ion-select>
           </ion-item>
         </ion-col>
-        <!-- Item Seleccion de Horario -->
         <ion-col>
-          <ion-item>
-           <ion-select label="Horario">
+          <ion-item class="select-item">
+           <ion-select placeholder="Horario" interface="popover">
             <ion-select-option value="1">Lunes 8:00 - 10:00</ion-select-option>
             <ion-select-option value="2">Miercoles 11:30 - 14:00</ion-select-option>
             <ion-select-option value="3">Viernes 12:30:00 - 15:00</ion-select-option>
@@ -50,8 +48,9 @@
     <!-- Item Puntos abiertos -->
     <div class="center-toggle">
       <ion-item>
-      <ion-toggle> Mostrar solo abiertos </ion-toggle>
-    </ion-item>
+        <ion-label color="dark">Mostrar solo abiertos</ion-label>
+        <ion-toggle></ion-toggle>
+      </ion-item>
     </div>
   <!-- Item Centro de donacion Boton Detalles -->
   <ion-grid [fixed]="true">

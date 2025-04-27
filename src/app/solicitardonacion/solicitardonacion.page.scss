@@ -9,3 +9,151 @@
   .custom-thumbnail i {
     font-size: 26px; // Ajusta esto según necesites que se vea más grande o más pequeño
   }
+
+ion-content {
+  --background: hsl(0, 76%, 43%);
+  position: relative;
+  height: 100%;
+
+  .ovalo {
+    position: absolute;
+    border-radius: 100%;
+    width: 150%;
+    height: 95%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+  }
+
+  .ovalotop {
+    top: 180px;
+    background-color: #cf8686;
+    z-index: -1;
+  }
+
+  .ovalomid {
+    top: 470px;
+    background-color: #e57373;
+    z-index: -2;
+  }
+
+  .header-section {
+    padding: 20px 16px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    ion-back-button {
+      --color: white;
+      --padding-start: 0;
+      --padding-end: 0;
+      --icon-font-size: 24px;
+      --icon-margin-end: 0;
+      --margin-start: 0;
+      --margin-end: 0;
+      --min-width: 24px;
+      --min-height: 24px;
+      --padding-bottom: 0;
+      --padding-top: 0;
+      width: 24px;
+      height: 24px;
+
+      &::part(native) {
+        padding: 0;
+        margin: 0;
+      }
+
+      &::part(icon) {
+        margin: 0;
+      }
+    }
+  }
+
+  .header-message {
+    padding: 0 20px;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 16px;
+    border-radius: 16px;
+    padding: 16px;
+
+    .icon-circle {
+      width: 48px;
+      height: 48px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        color: #b93636;
+        font-size: 24px;
+      }
+    }
+
+    .message-content {
+      h1 {
+        color: white;
+        font-size: 20px;
+        margin: 0;
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 16px;
+        margin: 4px 0 0;
+      }
+    }
+  }
+
+  .form-container {
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+
+    ion-item {
+      --background: rgba(255, 255, 255, 0.1);
+      --border-radius: 25px;
+      margin-bottom: 16px;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --border-color: transparent;
+      --highlight-height: 0;
+
+      ion-select, ion-input, ion-textarea {
+        --color: white;
+        --placeholder-color: rgba(255, 255, 255, 0.6);
+        font-size: 16px;
+        --padding-start: 0;
+      }
+
+      ion-select::part(icon) {
+        color: white;
+        opacity: 0.7;
+      }
+
+      ion-label {
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+  }
+
+  .submit-button {
+    --background: #b93636;
+    --color: white;
+    --border-radius: 25px;
+    margin: 32px 16px;
+    height: 48px;
+    text-transform: none;
+    font-size: 18px;
+    --box-shadow: none;
+  }
+}

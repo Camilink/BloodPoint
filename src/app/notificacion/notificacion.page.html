@@ -1,10 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Notificacion
-    </ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/menu/index" color="danger"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Notificaciones</ion-title>
   </ion-toolbar>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -17,6 +17,11 @@
 
   <!-- Item Notificacion -->
   <ion-grid [fixed]="true">
+
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/menu/index" color="danger"></ion-back-button>
+      </ion-buttons>
+
     <ion-list>
       <ion-item>
         <ion-thumbnail slot="start">

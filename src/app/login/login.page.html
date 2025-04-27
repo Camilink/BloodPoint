@@ -13,6 +13,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </ion-header>
 
+    <!-- Nuevo div para la imagen y texto -->
+    <div class="blood-drop-container">
+      <h1 class="save-life-text">Una gota<br>puede salvar<br>una vida.</h1>
+      <div class="characters">
+        <img src="assets/images/login_1.png" alt="Donante" class="donor-image">
+        <div class="heart-icon">
+          <ion-icon name="heart" color="danger"></ion-icon>
+        </div>
+        <img src="assets/images/login_2.png" alt="Bolsa de sangre" class="blood-bag-image">
+      </div>
+    </div>
+
   <ion-card>
     <ion-card-content>
       <form (ngSubmit)="onLogin()" #loginForm="ngForm">
@@ -53,13 +65,13 @@
         </ion-list>
         
         <!-- Item Boton Iniciar Sesion -->
-        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid">
+        <ion-button expand="block" type="submit" [disabled]="loginForm.valid">
           Iniciar Sesion
         </ion-button>
         
         <!-- Item Nav/Routerlink -->
         <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
-          <ion-button [routerLink]="['/tabr']" fill="clear">Registrarse</ion-button>
+          <ion-button [routerLink]="['/registrarse']" fill="clear">Registrarse</ion-button>
           <ion-button fill="clear">Recuperar Contrasena</ion-button>
         </div>
       </form>
