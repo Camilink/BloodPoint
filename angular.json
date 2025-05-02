@@ -31,7 +31,15 @@
                 "output": "./svg"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              {
+                "input": "src/theme/variables.scss"
+              },
+              {
+                "input": "src/global.scss"
+              },
+              "node_modules/mapbox-gl/dist/mapbox-gl.css"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -111,7 +119,11 @@
                 "output": "./svg"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              "src/global.scss",
+              "src/theme/variables.scss",
+              "node_modules/mapbox-gl/dist/mapbox-gl.css"
+            ],
             "scripts": []
           },
           "configurations": {

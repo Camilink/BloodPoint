@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -11,7 +12,7 @@ import { ToastController, LoadingController } from '@ionic/angular';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, RouterModule]
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule]
 })
 export class LoginPage {
   credentials: LoginCredentials = {

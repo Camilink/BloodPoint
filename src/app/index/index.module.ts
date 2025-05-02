@@ -1,18 +1,15 @@
-import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IndexPage } from './index.page';
-
+import { IonicModule } from '@ionic/angular';
 import { IndexPageRoutingModule } from './index-routing.module';
 
 @NgModule({
   imports: [
-    IonicModule,
     CommonModule,
-    FormsModule,
+    IonicModule,
     IndexPageRoutingModule
   ],
-  declarations: [IndexPage]
+  // Remove IndexPage from declarations since it's standalone
+  declarations: []
 })
-export class IndexPageModule {}
+export class IndexPageModule { }
