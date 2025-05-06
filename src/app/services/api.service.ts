@@ -93,5 +93,26 @@ export class ApiService {
     );
   }
   
+  getPerfilUsuario(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`
+    });
+    return this.http.get(`${API_URL}/profile/`, { headers });
+  }
+  
+  actualizarPerfilUsuario(data: any): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`
+    });
+    return this.http.put(`${API_URL}/profile/`, data, { headers });
+  }
+  
+  logout(): void {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user_id');
+  }
+  
 }
 

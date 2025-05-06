@@ -7,6 +7,7 @@ export interface LoginCredentials {
     status: string;
     token: string;
     user_id: number;
+    tipo_usuario: 'donante' | 'representante';
   }  
 
 export interface Donante {

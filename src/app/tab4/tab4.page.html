@@ -82,16 +82,16 @@
         </ion-label>
       </ion-item>
         <!-- Item Logout -->
-      <ion-item button [routerLink]="['/tab0']">
+      <ion-item button (click)="cerrarSesion()">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">
             <i class="fa-solid fa-right-from-bracket fa-flip-both"></i>
           </div>
         </ion-thumbnail>
-        <ion-label>
-          <p><strong>Cerrar Sesión</strong></p>
-        </ion-label>
-      </ion-item>
+      <ion-label>
+        <p><strong>Cerrar Sesión</strong></p>
+  </ion-label>
+</ion-item>
     </ion-list>
   </ion-grid>
 </ion-content>

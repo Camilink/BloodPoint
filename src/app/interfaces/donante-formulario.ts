@@ -5,7 +5,7 @@ export interface DonanteFormulario {
     fechaNacimiento: string;
     tipoSangre: string;
     telefono: string;
-    sexoBiologico: 'H' | 'M';
+    sexo: 'H' | 'M';
     nuevoDonante: boolean;
     aceptaTerminos: boolean;
     recibirNotificaciones: boolean;

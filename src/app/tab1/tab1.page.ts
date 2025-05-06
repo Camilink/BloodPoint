@@ -14,12 +14,6 @@ export class Tab1Page implements OnInit {
   constructor(private ApiService: ApiService) {}
 
   ngOnInit() {
-    this.cargarDonantes();
   }
 
-  cargarDonantes() {
-    this.ApiService.getDonantes().subscribe(data => {
-      this.donantes = data;
-    });
-  }
 }

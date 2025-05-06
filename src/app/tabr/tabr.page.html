@@ -20,13 +20,13 @@
           <ion-input 
             name="rut"
             [(ngModel)]="formData.rut"
+            (ngModelChange)="formatearRut($event)"
             labelPlacement="stacked" 
             [clearInput]="true" 
             label="RUT" 
             placeholder="12.345.678-9">
           </ion-input>
         </ion-item>
-
 
         <!-- Item Name -->
         <ion-item>
@@ -39,6 +39,9 @@
             placeholder="John Doe">
           </ion-input>
         </ion-item>
+        <div *ngIf="form.submitted && !formData.nombreCompleto">
+          <ion-text color="danger">El nombre completo es obligatorio.</ion-text>
+        </div>        
 
         <!-- Item Birth -->
         <ion-item>
@@ -50,6 +53,9 @@
             placeholder="Selecciona una fecha">
           </ion-input>
         </ion-item>
+        <div *ngIf="formData.fechaNacimiento && !esMayorDeEdad(formData.fechaNacimiento)">
+          <ion-text color="danger">Debes ser mayor de 18 años para registrarte.</ion-text>
+        </div>        
 
         <!-- Item Email -->
         <ion-item>
@@ -62,6 +68,12 @@
             placeholder="BloodPoint@domain.com">
           </ion-input>
         </ion-item>
+        <div *ngIf="form.submitted && !formData.correoElectronico">
+          <ion-text color="danger">El correo electrónico es obligatorio.</ion-text>
+        </div>
+        <div *ngIf="formData.correoElectronico && !esCorreoValido(formData.correoElectronico)">
+          <ion-text color="danger">El correo ingresado no es válido.</ion-text>
+        </div>        
   
         <!-- Item Contraseña -->
         <ion-item>
@@ -75,6 +87,19 @@
           </ion-input>
         </ion-item>
 
+        <!-- Repetir contraseña -->
+        <ion-item>
+          <ion-input
+            labelPlacement="stacked"
+            type="password"
+            label="Repetir contraseña"
+            placeholder="Repita su contraseña"
+            [(ngModel)]="formData.repetirPassword"
+            name="repetirPassword"
+            required>
+          </ion-input>
+        </ion-item>
+
         <!-- Item Sexo Biologico y Teléfono -->
         <ion-item>
           <ion-grid [fixed]="true">
@@ -82,8 +107,8 @@
               <ion-col>
                 <ion-item>
                   <ion-select 
-                    name="sexoBiologico"
-                    [(ngModel)]="formData.sexoBiologico"
+                    name="sexo"
+                    [(ngModel)]="formData.sexo"
                     label="Sexo Biologico">
                     <ion-select-option value="H">Hombre</ion-select-option>
                     <ion-select-option value="M">Mujer</ion-select-option>
@@ -98,7 +123,7 @@
                   [clearInput]="true" 
                   label="Numero de telefono" 
                   type="tel" 
-                  placeholder="569-0000-0000">
+                  placeholder="9-0000-0000">
                 </ion-input>
               </ion-col>
             </ion-row>
