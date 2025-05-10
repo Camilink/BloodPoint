@@ -1,14 +1,23 @@
 export interface LoginCredentials {
     rut: string;
     password: string;
+<<<<<<< HEAD
 }
+=======
+  }  
+>>>>>>> origin/zChao
 
-export interface LoginResponse {
+  export interface LoginResponse {
     status: string;
     token: string;
     user_id: number;
+<<<<<<< HEAD
     tipo_usuario: string;
 }
+=======
+    tipo_usuario: 'donante' | 'representante';
+  }  
+>>>>>>> origin/zChao
 
 export interface Donante {
     id_donante: number;

@@ -13,7 +13,11 @@ export class AuthGuard implements CanActivate {
     if (token) {
       return true; // Deja pasar
     } else {
+<<<<<<< HEAD
       this.router.navigate(['/login']); // Bloquea y redirige al login
+=======
+      this.router.navigate(['/tab0']); // Bloquea y redirige al login
+>>>>>>> origin/zChao
       return false;
     }
   }

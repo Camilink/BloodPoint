@@ -13,7 +13,11 @@ export class NoAuthGuard implements CanActivate {
 
     if (token) {
       // Si ya está autenticado, redirigir a la home (o a la que tú quieras)
+<<<<<<< HEAD
       this.router.navigate(['/menu/index']);
+=======
+      this.router.navigate(['/tabs/tab1']);
+>>>>>>> origin/zChao
       return false;
     }
 

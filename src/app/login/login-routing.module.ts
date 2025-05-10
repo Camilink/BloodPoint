@@ -1,6 +1,6 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 
+<<<<<<< HEAD:src/app/login/login-routing.module.ts
 import { LoginPage } from './login.page';
 
 const routes: Routes = [
@@ -15,3 +15,11 @@ const routes: Routes = [
   exports: [RouterModule],
 })
 export class LoginPageRoutingModule { }
+=======
+export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./tabia.page').then(m => m.TabiaPage),
+  }
+];
+>>>>>>> origin/zChao:src/app/tabia/tabia-routing.module.ts
