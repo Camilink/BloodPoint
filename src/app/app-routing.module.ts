@@ -32,7 +32,7 @@ const routes: Routes = [
     loadChildren: () => import('./perfil/perfil.module').then(m => m.PerfilPageModule)
   },
   {
-    path: 'detalles',
+    path: 'detalles/:id',
     loadChildren: () => import('./detalles/detalles.module').then(m => m.DetallesPageModule)
   },
   {

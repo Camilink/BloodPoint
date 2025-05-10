@@ -8,92 +8,104 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Donar</ion-title>
-    </ion-toolbar>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </ion-header>
-  
-  
-  <!-- Item Buscador -->
-  <div class="center-wrapper">
-    <ion-searchbar show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
-  </div>
-  <!-- Seccion de Ubicacion y Horario -->
+  <!-- Fixed Header Section -->
+  <div class="fixed-header">
+    <!-- Buscador -->
+    <div class="center-wrapper">
+      <ion-searchbar show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
+    </div>
+    
+    <!-- Ubicacion y Horario -->
     <ion-grid [fixed]="true">
       <ion-row>
         <ion-col>
           <ion-item class="select-item">
-            <ion-select placeholder="Ubicación" interface="popover" class="custom-select">
-             <ion-select-option value="1">Copiapo 232</ion-select-option>
-             <ion-select-option value="2">Concha y Toro 125</ion-select-option>
-             <ion-select-option value="3">Providencia 2001</ion-select-option>
-             <ion-select-option value="4">Republica 805</ion-select-option>
+            <ion-select class="select-popover"
+                       [(ngModel)]="selectedLocation" 
+                       (ionChange)="filterByLocation()"
+                       placeholder="Ubicación" 
+                       interface="popover">
+              <ion-select-option *ngFor="let address of availableLocations" 
+                                [value]="address">
+                {{address}}
+              </ion-select-option>
             </ion-select>
           </ion-item>
         </ion-col>
         <ion-col>
           <ion-item class="select-item">
-           <ion-select placeholder="Horario" interface="popover">
-            <ion-select-option value="1">Lunes 8:00 - 10:00</ion-select-option>
-            <ion-select-option value="2">Miercoles 11:30 - 14:00</ion-select-option>
-            <ion-select-option value="3">Viernes 12:30:00 - 15:00</ion-select-option>
-            <ion-select-option value="4">Sabado 10:00 - 12:00</ion-select-option>
-           </ion-select>
-         </ion-item>
+            <ion-select [(ngModel)]="selectedSchedule" 
+                       (ionChange)="filterBySchedule()"
+                       placeholder="Horario" 
+                       interface="popover"
+                       [disabled]="!selectedLocation">
+              <ion-select-option *ngFor="let schedule of uniqueSchedules" 
+                                [value]="schedule">
+                {{schedule}}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
         </ion-col>
       </ion-row>
     </ion-grid>
-    <!-- Item Puntos abiertos -->
-    <div class="center-toggle">
-      <ion-item>
-        <ion-label color="dark">Mostrar solo abiertos</ion-label>
-        <ion-toggle></ion-toggle>
-      </ion-item>
+    
+    <!-- Filter Actions -->
+    <div class="filter-actions">
+      <div class="open-toggle-wrapper">
+        <ion-button fill="clear" 
+                    size="small" 
+                    (click)="toggleOpenOnly()">
+          <ion-icon [name]="showOnlyOpen ? 'time' : 'time-outline'" slot="start"></ion-icon>
+          Mostrar solo abiertos
+          <ion-toggle [(ngModel)]="showOnlyOpen" 
+                     (ionChange)="filterCenters()"
+                     (click)="$event.stopPropagation()"
+                     slot="end">
+          </ion-toggle>
+        </ion-button>
+      </div>
+      
+      <div class="reset-button-wrapper">
+        <ion-button fill="clear" 
+                    size="small" 
+                    (click)="resetFilters()"
+                    [disabled]="!selectedLocation && !selectedSchedule && !showOnlyOpen">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Limpiar filtros
+        </ion-button>
+      </div>
     </div>
-  <!-- Item Centro de donacion Boton Detalles -->
-  <ion-grid [fixed]="true">
-    <ion-row class="ion-justify-content-center ion-align-items-center">
-      <ion-col size-md="6">
-        <ion-list>
-          <ion-item>
-            <ion-label class="ion-text-center">
-              <h3>Centro de Donación A</h3>
-              <p>Copiapo 123</p>
-              <p><i class="fa-solid fa-circle" style="color: #00ff04;"></i> Hoy: 10:00 - 12:00</p>
-              <ion-button [routerLink]="['/menu/detalles']">Ver Detalles</ion-button>
-            </ion-label>
-          </ion-item>
-    
-          <ion-item>
-            <ion-label class="ion-text-center">
-              <h3>Centro de Donación B</h3>
-              <p>Calle 234</p>
-              <p><i class="fa-solid fa-circle" style="color: #ff0000;"></i> Hoy: 09:00 - 13:00</p>
-              <ion-button disabled="">Ver Detalles</ion-button>
-            </ion-label>
-          </ion-item>
-    
-          <ion-item>
-            <ion-label class="ion-text-center">
-              <h3>Centro de Donación C</h3>
-              <p>Calle 789</p>
-              <p><i class="fa-solid fa-circle" style="color: #ff0000;"></i> Hoy: 07:30 - 10:00</p>
-              <ion-button disabled="">Ver Detalles</ion-button>
-            </ion-label>
-          </ion-item>
-    
-          <ion-item>
-            <ion-label class="ion-text-center">
-              <h3>Centro de Donación D</h3>
-              <p>Calle 654</p>
-              <p><i class="fa-solid fa-circle" style="color: #00ff04;"></i> Hoy: 12:00 - 14:00</p>
-              <ion-button disabled="">Ver Detalles</ion-button>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="scrollable-content">
+    <ion-list>
+      <ion-item *ngFor="let center of filteredCenters" class="center-item">
+        <ion-label>
+          <div class="center-header">
+            <h2>{{center.name}}</h2>
+            <span class="distance">
+              <i class="fa-solid fa-location-dot"></i>
+              {{center.distance}} km
+            </span>
+          </div>
+          <p class="address">{{center.address}}</p>
+          <div class="schedule">
+            <i class="fa-solid fa-circle" [style.color]="isOpen(center) ? '#00ff04' : '#ff0000'"></i>
+            <i class="fa-solid fa-clock"></i>
+            <span>{{center.schedules[0].days}}: {{center.schedules[0].hours}}</span>
+          </div>
+          <p class="contact">
+            <i class="fa-solid fa-phone"></i>
+            {{center.contacts[0]}}
+          </p>
+          <ion-button expand="block" 
+                      (click)="showDetails(center.name)"
+                      color="danger">
+            Ver Detalles
+          </ion-button>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
 </ion-content>

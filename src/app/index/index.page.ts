@@ -4,14 +4,9 @@ import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import * as mapboxgl from 'mapbox-gl';
 import { environment } from 'src/environments/environment';
 import { ApiService } from '../services/api.service';
-
-// Primero, añade una interface para los centros de donación
-interface DonationCenter {
-  name: string;
-  address: string;
-  distance: string;
-  coordinates: [number, number]; // [longitude, latitude]
-}
+import { GeocodingService } from '../services/geocoding.service';
+import { DonationCentersService } from '../services/donation-centers.service';
+import { DonationCenter } from '../interfaces/donation-center.interface';
 
 @Component({
   selector: 'app-index',
@@ -25,27 +20,7 @@ export class IndexPage implements OnInit, AfterViewInit {
   totalDonated = 1800;
   lastDonationDate = '2 de abril de 2025';
   
-  // Actualiza el array de centros de donación con coordenadas
-  donationCenters: DonationCenter[] = [
-    {
-      name: 'Centro de Donación A',
-      address: 'Calle 123',
-      distance: '0.5',
-      coordinates: [-70.6483, -33.4489]
-    },
-    {
-      name: 'Centro de Donación B',
-      address: 'Calle 234',
-      distance: '1.3',
-      coordinates: [-70.6583, -33.4399]
-    },
-    {
-      name: 'Centro de Donación C',
-      address: 'Calle 789',
-      distance: '0.3',
-      coordinates: [-70.6383, -33.4589]
-    }
-  ];
+  donationCenters: DonationCenter[] = [];
 
   donantes: any[] = [];
   private map!: mapboxgl.Map;
@@ -56,22 +31,34 @@ export class IndexPage implements OnInit, AfterViewInit {
   style = 'mapbox://styles/mapbox/streets-v12';
   lat = -33.4489;
   lng = -70.6483;
+  private currentLocation: [number, number] = [0, 0];
+  private routeLayer?: mapboxgl.Layer;
+
+  get sortedCenters(): DonationCenter[] {
+    return this.donationCenters.sort((a, b) => {
+      const distanceA = parseFloat(a.distance) || 0;
+      const distanceB = parseFloat(b.distance) || 0;
+      return distanceA - distanceB;
+    });
+  }
 
   constructor(
     private ApiService: ApiService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private geocodingService: GeocodingService,
+    private donationCentersService: DonationCentersService
   ) {
-    // Initialize Mapbox token here
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
 
   ngOnInit() {
     console.log('Iniciando componente');
+    this.donationCenters = this.donationCentersService.getCenters();
+    this.updateDonationCenters();
   }
 
   ngAfterViewInit() {
-    // Agregar un pequeño retraso para asegurar que el DOM esté listo
     setTimeout(() => {
       this.initializeMap();
     }, 100);
@@ -86,12 +73,8 @@ export class IndexPage implements OnInit, AfterViewInit {
   showFullMap() {
     this.isFullscreen = true;
     if (this.map) {
-      this.map.resize(); // Ensure the map renders correctly
-      
-      // You can add additional actions here, like:
-      this.map.setZoom(15); // Zoom in closer
-      
-      // Make the map container full screen
+      this.map.resize();
+      this.map.setZoom(15);
       const mapContainer = document.getElementById('map');
       if (mapContainer) {
         mapContainer.style.height = '100vh';
@@ -116,9 +99,19 @@ export class IndexPage implements OnInit, AfterViewInit {
     }
   }
 
+  private async updateDonationCenters() {
+    for (const center of this.donationCenters) {
+      const coords = await this.geocodingService.getCoordinates(center.address);
+      if (coords) {
+        center.coordinates = coords;
+        console.log(`Actualizado ${center.name}:`, center.coordinates);
+      }
+    }
+    this.initializeMap();
+  }
+
   private initializeMap(): void {
     try {
-      // Verifica que el token esté establecido
       if (!(mapboxgl as any).accessToken) {
         console.error('Token de Mapbox no configurado');
         return;
@@ -132,10 +125,8 @@ export class IndexPage implements OnInit, AfterViewInit {
         attributionControl: false
       });
 
-      // Añadir controles de navegación
       this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      // Añadir control de geolocalización
       this.map.addControl(
         new mapboxgl.GeolocateControl({
           positionOptions: {
@@ -167,48 +158,62 @@ export class IndexPage implements OnInit, AfterViewInit {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          this.currentLocation = [longitude, latitude];
           
-          // Crear o actualizar el marcador de ubicación actual
           if (this.currentLocationMarker) {
-            this.currentLocationMarker.setLngLat([longitude, latitude]);
+            this.currentLocationMarker.setLngLat(this.currentLocation);
           } else {
             this.currentLocationMarker = new mapboxgl.Marker({
               color: '#4A89F3',
               scale: 0.8
             })
-            .setLngLat([longitude, latitude])
+            .setLngLat(this.currentLocation)
             .addTo(this.map);
           }
 
-          // Centrar el mapa en la ubicación actual
+          this.updateDistances();
+
           this.map.flyTo({
-            center: [longitude, latitude],
+            center: this.currentLocation,
             zoom: 15
           });
         },
         (error) => {
-          console.error('Error obteniendo ubicación:', error);
+          console.error('Error getting location:', error);
         }
       );
     }
   }
 
+  private updateDistances() {
+    this.donationCenters.forEach(center => {
+      if (this.currentLocation) {
+        const distance = this.geocodingService.calculateDistance(
+          this.currentLocation[1],
+          this.currentLocation[0],
+          center.coordinates[1],
+          center.coordinates[0]
+        );
+        center.distance = distance.toFixed(1);
+      }
+    });
+  }
+
   private addDonationCenterMarkers(): void {
     this.donationCenters.forEach(center => {
-      // Crear un elemento personalizado para el marcador
       const el = document.createElement('div');
       el.className = 'donation-marker';
       el.innerHTML = `<ion-icon name="water" style="color: #DD4B4B; font-size: 24px;"></ion-icon>`;
 
-      // Crear un popup con la información del centro
       const popup = new mapboxgl.Popup({ offset: 25 })
         .setHTML(`
           <h4>${center.name}</h4>
           <p>${center.address}</p>
           <p>Distancia: ${center.distance} km</p>
+          ${center.schedules.map(schedule => `<p>${schedule.days}: ${schedule.hours}</p>`).join('')}
+          ${center.contacts.map(contact => `<p>Contacto: ${contact}</p>`).join('')}
         `);
 
-      // Añadir el marcador al mapa
       new mapboxgl.Marker({
         element: el,
         color: '#DD4B4B',
@@ -223,10 +228,8 @@ export class IndexPage implements OnInit, AfterViewInit {
   async addNewDonationCenter() {
     this.isAddingCenter = true;
     
-    // Cambiar el cursor del mapa
     this.map.getCanvas().style.cursor = 'crosshair';
 
-    // Mostrar toast con instrucciones
     const toast = await this.toastController.create({
       message: 'Haz clic en el mapa para colocar el nuevo centro de donación',
       duration: 3000,
@@ -235,11 +238,9 @@ export class IndexPage implements OnInit, AfterViewInit {
     });
     toast.present();
 
-    // Escuchar el clic en el mapa
     this.map.once('click', async (e) => {
       const coordinates = e.lngLat;
       
-      // Crear formulario para los datos del centro
       const alert = await this.alertController.create({
         header: 'Nuevo Centro de Donación',
         inputs: [
@@ -268,22 +269,25 @@ export class IndexPage implements OnInit, AfterViewInit {
           },
           {
             text: 'Guardar',
-            handler: (data) => {
-              const newCenter: DonationCenter = {
-                name: data.name,
-                address: data.address,
-                distance: '0',
-                coordinates: [coordinates.lng, coordinates.lat]
-              };
+            handler: async (data) => {
+              const coords = await this.geocodingService.getCoordinates(data.address);
+              
+              if (coords) {
+                const newCenter: DonationCenter = {
+                  name: data.name,
+                  address: data.address,
+                  distance: '0',
+                  coordinates: coords,
+                  schedules: [],
+                  contacts: []
+                };
 
-              // Agregar al array de centros
-              this.donationCenters.push(newCenter);
-              
-              // Guardar en el servicio/backend
-              this.saveDonationCenter(newCenter);
-              
-              // Agregar marcador permanente
-              this.addDonationCenterMarker(newCenter);
+                this.donationCenters.push(newCenter);
+                this.addDonationCenterMarker(newCenter);
+                this.saveDonationCenter(newCenter);
+              } else {
+                this.showToast('No se pudo encontrar la dirección especificada');
+              }
               
               this.isAddingCenter = false;
               this.map.getCanvas().style.cursor = '';
@@ -297,7 +301,6 @@ export class IndexPage implements OnInit, AfterViewInit {
   }
 
   private saveDonationCenter(center: DonationCenter) {
-    // Aquí implementarías la lógica para guardar en tu backend
     console.log('Guardando nuevo centro:', center);
   }
 
@@ -322,36 +325,77 @@ export class IndexPage implements OnInit, AfterViewInit {
     .addTo(this.map);
   }
 
-  focusOnCenter(center: DonationCenter) {
+  async focusOnCenter(center: DonationCenter) {
     if (!this.map) return;
 
-    // Animar el mapa hacia el centro seleccionado
-    this.map.flyTo({
-      center: center.coordinates,
-      zoom: 15,
-      essential: true,
-      duration: 1000
-    });
+    this.removeRoute();
 
-    // Buscar y activar el popup del marcador
-    const markers = document.getElementsByClassName('donation-marker');
-    for (let i = 0; i < markers.length; i++) {
-      const marker = markers[i];
-      const markerLngLat = new mapboxgl.LngLat(center.coordinates[0], center.coordinates[1]);
-      
-      // Comparar las coordenadas para encontrar el marcador correcto
-      const markerElement = marker as HTMLElement;
-      const markerInstance = (markerElement as any)._marker;
-      
-      if (markerInstance && markerInstance.getLngLat().lng === markerLngLat.lng) {
-        // Simular un clic en el marcador para mostrar el popup
-        markerElement.click();
-        break;
-      }
+    const routeData = await this.geocodingService.getRoute(
+      this.currentLocation,
+      center.coordinates
+    );
+
+    if (routeData) {
+      this.addRoute(routeData.route);
+
+      const distance = (routeData.distance / 1000).toFixed(1);
+      const duration = Math.round(routeData.duration / 60);
+      this.showToast(
+        `Navegando a ${center.name} - ${distance}km (${duration} min)`
+      );
     }
 
-    // Mostrar un toast de confirmación
-    this.showToast(`Navegando a ${center.name}`);
+    const bounds = new mapboxgl.LngLatBounds()
+      .extend(this.currentLocation)
+      .extend(center.coordinates);
+
+    this.map.fitBounds(bounds, {
+      padding: 100,
+      duration: 1000
+    });
+  }
+
+  private addRoute(geometry: any) {
+    if (this.map.getSource('route')) {
+      (this.map.getSource('route') as mapboxgl.GeoJSONSource).setData({
+        type: 'Feature',
+        properties: {},
+        geometry: geometry
+      });
+    } else {
+      this.map.addSource('route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: geometry
+        }
+      });
+
+      this.map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#DD4B4B',
+          'line-width': 4,
+          'line-opacity': 0.8
+        }
+      });
+    }
+  }
+
+  private removeRoute() {
+    if (this.map.getLayer('route')) {
+      this.map.removeLayer('route');
+    }
+    if (this.map.getSource('route')) {
+      this.map.removeSource('route');
+    }
   }
 
   private async showToast(message: string) {

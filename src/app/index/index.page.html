@@ -47,19 +47,22 @@
   </ion-card-content>
 </ion-card>
 
-<ion-card>
+<ion-card class="donation-centers-card">
   <ion-card-header>
     <ion-card-title><p style="color: #DD4B4B;">Puntos de Donación</p></ion-card-title>
   </ion-card-header>
   <ion-card-content>
-    <ion-list>
-      <ion-item button *ngFor="let center of donationCenters" (click)="focusOnCenter(center)">
-        <ion-label>
-          <h3>{{center.name}}</h3>
-          <p>{{center.address}} - a {{center.distance}} kilómetros</p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <div class="scrollable-container">
+      <ion-list>
+        <ion-item button *ngFor="let center of sortedCenters" (click)="focusOnCenter(center)">
+          <ion-label>
+            <h3>{{center.name}}</h3>
+            <p class="address">{{center.address}}</p>
+            <p class="distance">a {{center.distance}} kilómetros</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
   </ion-card-content>
 </ion-card>
 

@@ -109,3 +109,17 @@
     }
   }
 
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+    background-color: #ff4444;
+    color: white;
+    
+    &.open {
+      background-color: #00C851;
+    }
+  }
+

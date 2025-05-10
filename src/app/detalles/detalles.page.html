@@ -11,17 +11,22 @@
 
   <!-- Header with back button -->
   <div class="header-section">
-    <ion-back-button defaultHref="/menu/puntosdonacion" text="" icon="arrow-back"></ion-back-button>
-    <h1>Centro de Donación A</h1>
+    <ion-back-button 
+      defaultHref="/menu/puntosdonacion"
+      (click)="goBack()"
+      text="" 
+      icon="arrow-back">
+    </ion-back-button>
+    <h1>{{center?.name}}</h1>
   </div>
 
   <!-- Details Card -->
-  <div class="details-card">
+  <div class="details-card" *ngIf="center">
     <div class="info-item">
       <i class="fa-solid fa-map-location-dot"></i>
       <div class="info-content">
         <span class="label">Dirección:</span>
-        <span class="value">Calle 234, comuna</span>
+        <span class="value">{{center?.address || 'No disponible'}}</span>
       </div>
     </div>
 
@@ -29,7 +34,9 @@
       <i class="fa-regular fa-clock"></i>
       <div class="info-content">
         <span class="label">Horario:</span>
-        <span class="value">Lun - Vie, Hoy: 10:00 - 16:00</span>
+        <div class="value" *ngFor="let schedule of center?.schedules">
+          {{schedule?.days}}: {{schedule?.hours}}
+        </div>
       </div>
     </div>
 
@@ -37,7 +44,7 @@
       <i class="fa-solid fa-phone"></i>
       <div class="info-content">
         <span class="label">Teléfono:</span>
-        <span class="value">+56 9 0000 0000</span>
+        <span class="value" *ngFor="let contact of center?.contacts">{{contact}}</span>
       </div>
     </div>
 
@@ -45,15 +52,7 @@
       <i class="fa-solid fa-location-dot"></i>
       <div class="info-content">
         <span class="label">Distancia:</span>
-        <span class="value">0.5 kilómetros</span>
-      </div>
-    </div>
-
-    <div class="info-item">
-      <i class="fa-solid fa-droplet"></i>
-      <div class="info-content">
-        <span class="label">Tipo de sangre con prioridad:</span>
-        <span class="value">O-, AB-</span>
+        <span class="value">{{center?.distance || '0'}} kilómetros</span>
       </div>
     </div>
   </div>

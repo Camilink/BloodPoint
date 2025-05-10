@@ -81,6 +81,14 @@ ion-content {
         p {
           color: #666;
           margin: 4px 0;
+
+          i {
+            margin-right: 8px;
+            
+            &.fa-location-dot {
+              color: #DD4B4B;
+            }
+          }
         }
 
         ion-button {
@@ -97,6 +105,63 @@ ion-content {
 
         .fa-circle {
           margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .reset-button-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 8px 16px;
+    margin-bottom: 8px;
+
+    ion-button {
+      --color: #DD4B4B;
+      font-size: 14px;
+      
+      &[disabled] {
+        --color: #999;
+      }
+
+      ion-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 8px;
+
+    .open-toggle-wrapper,
+    .reset-button-wrapper {
+      width: 100%;
+      
+      ion-button {
+        width: 100%;
+        --color: #DD4B4B;
+        font-size: 14px;
+        justify-content: space-between;
+        
+        &[disabled] {
+          --color: #999;
+        }
+
+        ion-icon {
+          margin-right: 4px;
+        }
+
+        ion-toggle {
+          --background: #f5f5f5;
+          --background-checked: #DD4B4B;
+          --handle-background: white;
+          --handle-background-checked: white;
+          margin: 0;
+          padding-left: 8px;
         }
       }
     }
@@ -215,4 +280,205 @@ ion-alert.select-alert {
     color: #333;
     font-size: 16px;
   }
+}
+
+::ng-deep ion-popover {
+  --background: white;
+  --width: 280px;
+  --width: min(280px, 90vw);
+  --max-height: 60vh;
+  --offset-y: 10px;
+  
+  &.select-popover {
+    --min-width: 200px;
+    margin-bottom: 56px; // Height of the footer bar
+    
+    .popover-content {
+      max-height: calc(100vh - 120px); // Account for header and footer
+      overflow-y: auto;
+    }
+    
+    @media (max-height: 600px) {
+      --max-height: 40vh;
+    }
+  }
+  
+  .popover-viewport {
+    max-height: inherit;
+    overflow-y: auto;
+  }
+    
+  ion-list {
+    background: white !important;
+    padding: 0;
+    margin: 0;
+  }
+    
+  ion-item {
+    --background: white;
+    --color: #333333;
+      
+    &:hover {
+      --background: #fff2f2;
+    }
+      
+    &.item-selected {
+      --background: #fff2f2;
+      color: #DD4B4B;
+      font-weight: 500;
+    }
+  }
+}
+
+::ng-deep {
+  .popover-content {
+    --background: white !important;
+  }
+
+  .select-interface-option {
+    --background: white;
+    --color: #333333;
+    
+    &:hover {
+      --background: #fff2f2;
+    }
+  }
+
+  .popover-content {
+    --background: white;
+    --width: 280px;
+  }
+
+  ion-select-popover {
+    ion-list {
+      background: white;
+      
+      ion-item {
+        --background: white;
+        color: #333333;
+        
+        &:hover {
+          --background: #fff2f2;
+        }
+
+        &.item-selected {
+          --background: #fff2f2;
+          color: #DD4B4B;
+        }
+      }
+    }
+  }
+}
+
+ion-select {
+  &[disabled] {
+    opacity: 0.5;
+    --placeholder-color: #999;
+    
+    &::part(text), 
+    &::part(icon) {
+      opacity: 0.5;
+    }
+  }
+}
+
+.fixed-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: white;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.scrollable-content {
+  margin-top: 8px;
+  height: calc(100% - var(--fixed-header-height));
+  overflow-y: auto;
+}
+
+.center-item {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  --background: #fff;
+  --border-color: #ddd;
+
+  .center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    h2 {
+      margin: 0;
+      color: #DD4B4B;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .distance {
+      color: #666;
+      font-size: 14px;
+      
+      i {
+        color: #DD4B4B;
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .address {
+    margin: 4px 0;
+    color: #333;
+  }
+
+  .schedule {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    color: #333333; // Added this line for text color
+    
+    i {
+      &.fa-clock {
+        color: #666;
+      }
+    }
+
+    span {
+      color: #333333; // Added this line specifically for the schedule text
+    }
+  }
+
+  .contact {
+    margin: 4px 0;
+    
+    i {
+      color: #666;
+      margin-right: 8px;
+    }
+  }
+
+  ion-button {
+    margin-top: 8px;
+    --background: #DD4B4B;
+    --color: #ffffff;
+    --ripple-color: rgba(255, 255, 255, 0.2);
+    
+    &:hover {
+      --background: #c23e3e;
+      --color: #ffffff;
+    }
+
+    &::part(native) {
+      color: #ffffff;
+    }
+  }
+}
+
+:host ::ng-deep ion-button.button-solid {
+  --color: #ffffff;
+  --background: #DD4B4B;
+  --background-activated: #c23e3e;
+  --background-focused: #c23e3e;
 }
