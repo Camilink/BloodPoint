@@ -7,6 +7,7 @@ import { ApiService } from '../services/api.service';
 import { GeocodingService } from '../services/geocoding.service';
 import { DonationCentersService } from '../services/donation-centers.service';
 import { DonationCenter } from '../interfaces/donation-center.interface';
+import { AuthService } from '../services/auth.interceptor';
 
 @Component({
   selector: 'app-index',
@@ -21,6 +22,7 @@ export class IndexPage implements OnInit, AfterViewInit {
   lastDonationDate = '2 de abril de 2025';
   
   donationCenters: DonationCenter[] = [];
+  isRepresentante: boolean = false;
 
   donantes: any[] = [];
   private map!: mapboxgl.Map;
@@ -47,7 +49,8 @@ export class IndexPage implements OnInit, AfterViewInit {
     private toastController: ToastController,
     private alertController: AlertController,
     private geocodingService: GeocodingService,
-    private donationCentersService: DonationCentersService
+    private donationCentersService: DonationCentersService,
+    private authService: AuthService
   ) {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
@@ -56,6 +59,7 @@ export class IndexPage implements OnInit, AfterViewInit {
     console.log('Iniciando componente');
     this.donationCenters = this.donationCentersService.getCenters();
     this.updateDonationCenters();
+    this.isRepresentante = this.authService.getUserRole() === 'representante';
   }
 
   ngAfterViewInit() {

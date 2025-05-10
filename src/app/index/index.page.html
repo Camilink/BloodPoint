@@ -23,7 +23,7 @@
       </div>
     </div>
     <!-- Botón para añadir nuevo centro -->
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="add-center-fab">
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="add-center-fab" *ngIf="isRepresentante">
       <ion-fab-button (click)="addNewDonationCenter()" color="light">
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>

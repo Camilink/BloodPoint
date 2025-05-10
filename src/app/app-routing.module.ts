@@ -1,5 +1,8 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth.guard';
+import { NoAuthGuard } from './guards/no-auth.guard';
+import { UserRoleGuard } from './guards/user-role.guard';
 
 const routes: Routes = [
   {
@@ -13,31 +16,38 @@ const routes: Routes = [
   },
   {
     path: 'login',
-    loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule)
+    loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule),
+    canActivate: [NoAuthGuard]
   },
   {
     path: 'index',
-    loadChildren: () => import('./index/index.module').then(m => m.IndexPageModule)
+    loadChildren: () => import('./index/index.module').then(m => m.IndexPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'puntosdonacion',
-    loadChildren: () => import('./puntosdonacion/puntosdonacion.module').then(m => m.PuntosdonacionPageModule)
+    loadChildren: () => import('./puntosdonacion/puntosdonacion.module').then(m => m.PuntosdonacionPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'notificacion',
-    loadChildren: () => import('./notificacion/notificacion.module').then(m => m.NotificacionPageModule)
+    loadChildren: () => import('./notificacion/notificacion.module').then(m => m.NotificacionPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'perfil',
-    loadChildren: () => import('./perfil/perfil.module').then(m => m.PerfilPageModule)
+    loadChildren: () => import('./perfil/perfil.module').then(m => m.PerfilPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'detalles/:id',
-    loadChildren: () => import('./detalles/detalles.module').then(m => m.DetallesPageModule)
+    loadChildren: () => import('./detalles/detalles.module').then(m => m.DetallesPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'editarperfil',
-    loadChildren: () => import('./editarperfil/editarperfil.module').then(m => m.EditarperfilPageModule)
+    loadChildren: () => import('./editarperfil/editarperfil.module').then(m => m.EditarperfilPageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'historialdonacion',
@@ -57,7 +67,8 @@ const routes: Routes = [
   },
   {
     path: 'chatbot',
-    loadChildren: () => import('./chatbot/chatbot.module').then(m => m.ChatbotPageModule)
+    loadChildren: () => import('./chatbot/chatbot.page').then(m => m.ChatbotPage),
+    canActivate: [AuthGuard]
   },
   {
     path: 'ayudabp',
@@ -65,7 +76,8 @@ const routes: Routes = [
   },
   {
     path: 'registrarse',
-    loadChildren: () => import('./registrarse/registrarse.module').then(m => m.RegistrarsePageModule)
+    loadChildren: () => import('./registrarse/registrarse.module').then(m => m.RegistrarsePageModule),
+    canActivate: [NoAuthGuard]
   },
 ];
 

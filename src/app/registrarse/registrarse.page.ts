@@ -1,56 +1,164 @@
 import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
-import { Donante } from '../interfaces/donante';
+import { CommonModule } from '@angular/common';
+import { DonanteFormulario } from '../interfaces/donante-formulario';
 
 @Component({
-  selector: 'app-Registrarse',
-  templateUrl: './Registrarse.page.html',
-  styleUrls: ['./Registrarse.page.scss'],
+  selector: 'app-registrarse',
+  templateUrl: './registrarse.page.html',
+  styleUrls: ['./registrarse.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, RouterModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
-
 export class RegistrarsePage implements OnInit {
-  formData: Partial<Donante> = {
+  formData: Partial<DonanteFormulario> & { password?: string, repetirPassword?: string, rut?: string, direccion?: string, comuna?: string } = {
+    rut: '',
     nombreCompleto: '',
     correoElectronico: '',
     fechaNacimiento: '',
     tipoSangre: '',
     telefono: '',
-    sexoBiologico: 'H',
+    sexo: 'H',
     nuevoDonante: true,
     aceptaTerminos: false,
-    recibirNotificaciones: false
+    recibirNotificaciones: false,
+    password: '',
+    repetirPassword: '',
+    direccion: '',
+    comuna: ''
   };
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private toastController: ToastController
+  ) {}
 
-  registrarDonante(formValue: any) {
-    const nuevoDonante: Donante = {
-      nombreCompleto: formValue.nombreCompleto,
-      correoElectronico: formValue.correoElectronico,
-      fechaNacimiento: formValue.fechaNacimiento,
-      tipoSangre: formValue.tipoSangre,
-      telefono: formValue.telefono,
-      sexoBiologico: formValue.sexoBiologico,
-      nuevoDonante: formValue.nuevoDonante,
-      aceptaTerminos: formValue.aceptaTerminos,
-      recibirNotificaciones: formValue.recibirNotificaciones
+  validarRut(rut: string): boolean {
+    rut = rut.replace(/\./g, '').replace(/-/g, '');
+    if (rut.length < 2) return false;
+    const cuerpo = rut.slice(0, -1);
+    const dv = rut.slice(-1).toUpperCase();
+    let suma = 0;
+    let multiplo = 2;
+  
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo.charAt(i)) * multiplo;
+      multiplo = multiplo < 7 ? multiplo + 1 : 2;
+    }
+  
+    const dvEsperado = 11 - (suma % 11);
+    const dvFinal = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+  
+    return dv === dvFinal;
+  }
+
+  formatearRut(valor: string) {
+    const limpio = valor.replace(/[^0-9kK]/g, '').toUpperCase();
+    
+    if (limpio.length < 2) {
+      this.formData.rut = limpio;
+      return;
+    }
+  
+    const cuerpo = limpio.slice(0, -1);
+    const dv = limpio.slice(-1);
+    let cuerpoFormateado = cuerpo;
+    if (cuerpo.length >= 4) {
+      cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+  
+    this.formData.rut = `${cuerpoFormateado}-${dv}`;
+  }
+
+  esMayorDeEdad(fecha: string): boolean {
+    const fechaNacimiento = new Date(fecha);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+      edad--;
+    }
+    return edad >= 18;
+  }
+  
+  esCorreoValido(correo: string): boolean {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(correo);
+  }
+
+  async registrarDonante(formValue: any) {
+    if (!formValue.rut || !this.validarRut(formValue.rut)) {
+      await this.showToast('El RUT ingresado no es válido', 'warning');
+      return;
+    }
+
+    if (!formValue.password || formValue.password.length < 8) {
+      await this.showToast('La contraseña debe tener al menos 8 caracteres', 'warning');
+      return;
+    }
+
+    if (formValue.password !== formValue.confirmPassword) {
+      await this.showToast('Las contraseñas no coinciden', 'warning');
+      return;
+    }
+
+    if (!this.esMayorDeEdad(formValue.fechaNacimiento)) {
+      await this.showToast('Debes ser mayor de 18 años para registrarte', 'warning');
+      return;
+    }
+
+    if (!formValue.aceptaTerminos) {
+      await this.showToast('Debe aceptar los términos y condiciones', 'warning');
+      return;
+    }
+
+    const nuevoDonante = {
+      rut: formValue.rut,
+      email: formValue.correoElectronico,
+      contrasena: formValue.password,
+      tipo_usuario: 'donante',
+      nombre_completo: formValue.nombreCompleto,
+      direccion: formValue.direccion || "Sin dirección",
+      comuna: formValue.comuna || "Santiago",
+      fono: formValue.telefono,
+      fecha_nacimiento: formValue.fechaNacimiento,
+      nacionalidad: "Chilena",
+      tipo_sangre: formValue.tipoSangre,
+      dispo_dia_donacion: "Lunes",
+      nuevo_donante: formValue.nuevoDonante,
+      noti_emergencia: formValue.recibirNotificaciones,
+      sexo: formValue.sexo,
     };
 
-    this.apiService.crearDonante(nuevoDonante).subscribe({
-      next: (response) => {
-        console.log('Donante registrado:', response);
-        // Aquí puedes agregar navegación o mensaje de éxito
-      },
-      error: (error) => {
-        console.error('Error al registrar:', error);
-        // Aquí puedes mostrar un mensaje de error
-      }
+    try {
+      this.apiService.registrarUsuario(nuevoDonante).subscribe({
+        next: async (res) => {
+          console.log('Registro exitoso:', res);
+          await this.showToast('Registro completado correctamente', 'success');
+        },
+        error: async (err) => {
+          console.error('Error en el registro:', err);
+          await this.showToast(`Error al registrar: ${err.message}`, 'danger');
+        }
+      });
+    } catch (err) {
+      await this.showToast('Error inesperado en el registro', 'danger');
+      console.error('Error inesperado:', err);
+    }
+  }
+
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'bottom',
+      cssClass: 'custom-toast'
     });
+    await toast.present();
   }
 
   ngOnInit() {}

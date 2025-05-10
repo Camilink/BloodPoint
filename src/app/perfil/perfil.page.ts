@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { IonHeader } from "@ionic/angular/standalone";
-import { IonicModule } from '@ionic/angular';
-import { RouterModule, Routes } from '@angular/router';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -12,9 +13,31 @@ import { RouterModule, Routes } from '@angular/router';
 })
 export class PerfilPage implements OnInit {
 
-  constructor() { }
+  constructor(
+    private router: Router, 
+    private toastController: ToastController
+  ) {}
 
   ngOnInit() {
   }
 
+  async cerrarSesion() {
+    // Eliminar token y datos de usuario del localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('tipoUsuario');
+    
+    // Mostrar mensaje de éxito
+    const toast = await this.toastController.create({
+      message: 'Sesión cerrada correctamente.',
+      duration: 2000,
+      color: 'success',
+      position: 'bottom',
+      cssClass: 'custom-toast'
+    });
+    await toast.present();
+
+    // Redirigir al login
+    this.router.navigate(['/login']);
+  }
 }

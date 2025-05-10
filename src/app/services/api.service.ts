@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Donante } from '../interfaces/donante';
+import { DonanteFormulario } from '../interfaces/donante-formulario';
+import { Donante } from '../interfaces/donante-backend';
 import { LoginCredentials, LoginResponse } from '../interfaces/login';
-
-const API_URL = 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/api';
+import { HttpHeaders } from '@angular/common/http'; 
+const API_URL = 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,7 @@ export class ApiService {
   }
 
   // POST /donantes - Crear nuevo donante
-  crearDonante(donante: Donante): Observable<Donante> {
+  crearDonante(donante: DonanteFormulario): Observable<Donante> {
     return this.http.post<Donante>(`${API_URL}/donantes/`, donante);
   }
 
@@ -52,10 +53,18 @@ export class ApiService {
   // POST /auth/login - Iniciar sesión
   login(credentials: LoginCredentials): Observable<LoginResponse> {
     console.log('Attempting login with:', credentials);
-    return this.http.post<LoginResponse>(`${API_URL}/auth/login`, credentials)
-      .pipe(
-        catchError(this.handleError)
-      );
+  
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+  
+    return this.http.post<LoginResponse>(
+      `${API_URL}/ingresar/`,
+      credentials,
+      { headers } // <-- Aquí se agregan los headers
+    ).pipe(
+      catchError(this.handleError)
+    );
   }
 
   // GET /donantes - Test connection
@@ -77,4 +86,32 @@ export class ApiService {
     console.error(errorMessage);
     return throwError(() => errorMessage);
   }
+
+  registrarUsuario(data: any): Observable<any> {
+    return this.http.post(`${API_URL}/register/`, data).pipe(
+      catchError(this.handleError)
+    );
+  }
+  
+  getPerfilUsuario(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`
+    });
+    return this.http.get(`${API_URL}/profile/`, { headers });
+  }
+  
+  actualizarPerfilUsuario(data: any): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`
+    });
+    return this.http.put(`${API_URL}/profile/`, data, { headers });
+  }
+  
+  logout(): void {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user_id');
+  }
+  
 }

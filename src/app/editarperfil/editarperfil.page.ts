@@ -1,23 +1,61 @@
 import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { ApiService } from '../services/api.service';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-Editarperfil',
-  templateUrl: './Editarperfil.page.html',
-  styleUrls: ['./Editarperfil.page.scss'],
+  selector: 'app-editarperfil',
+  templateUrl: './editarperfil.page.html',
+  styleUrls: ['./editarperfil.page.scss'],
   standalone: true,
-  imports: [IonicModule],
+  imports: [IonicModule, FormsModule, CommonModule],
 })
 export class EditarperfilPage implements OnInit {
-
   avatarUrl = 'https://ionicframework.com/docs/img/demos/avatar.svg';
   nuevaImagen: File | null = null;
+
+  form: any = {
+    rut: '',
+    nombre_completo: '',
+    sexo: '',
+    direccion: '',
+    comuna: '',
+    fono: '',
+    fecha_nacimiento: '',
+    nacionalidad: '',
+    tipo_sangre: '',
+    noti_emergencia: false,
+    email: ''
+  };
+
+  constructor(
+    private apiService: ApiService, 
+    private toastController: ToastController
+  ) {}
+
+  ngOnInit() {
+    this.cargarPerfilUsuario();
+  }
+
+  private cargarPerfilUsuario() {
+    this.apiService.getPerfilUsuario().subscribe({
+      next: (res) => {
+        console.log('Datos del perfil recibidos:', res);
+        const data = res.data;
+        this.form = { ...this.form, ...data };
+      },
+      error: (err) => {
+        console.error('Error al obtener perfil:', err);
+        this.showToast('Error al cargar los datos del perfil', 'danger');
+      }
+    });
+  }
 
   onImageSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       this.nuevaImagen = file;
-
       const reader = new FileReader();
       reader.onload = () => {
         this.avatarUrl = reader.result as string;
@@ -26,9 +64,34 @@ export class EditarperfilPage implements OnInit {
     }
   }
 
-  constructor() { }
+  actualizarPerfil() {
+    const datosAEnviar = {
+      direccion: this.form.direccion,
+      comuna: this.form.comuna,
+      fono: this.form.fono,
+      noti_emergencia: this.form.noti_emergencia,
+      email: this.form.email
+    };
 
-  ngOnInit() {
+    this.apiService.actualizarPerfilUsuario(datosAEnviar).subscribe({
+      next: async (res) => {
+        await this.showToast('Perfil actualizado exitosamente', 'success');
+      },
+      error: async (err) => {
+        console.error('Error al actualizar perfil:', err);
+        await this.showToast('Error al actualizar el perfil', 'danger');
+      }
+    });
   }
 
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'bottom',
+      cssClass: 'custom-toast'
+    });
+    await toast.present();
+  }
 }
