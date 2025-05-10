@@ -6,11 +6,7 @@ import { Observable } from 'rxjs';
 export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = localStorage.getItem('authToken');
-<<<<<<< HEAD
     console.log('[INTERCEPTOR] Token:', token);
-=======
-    console.log('[INTERCEPTOR] Token:', token);  // 👈 Asegúrate de tener esto para debug
->>>>>>> origin/zChao
 
     if (token) {
       const authReq = req.clone({
@@ -21,7 +17,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(req);
   }
-<<<<<<< HEAD
   
 }
 
@@ -45,6 +40,3 @@ export class AuthService {
     localStorage.setItem('userRole', role);
   }
 }
-=======
-}
->>>>>>> origin/zChao

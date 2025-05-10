@@ -12,17 +12,12 @@ import { HttpClient } from '@angular/common/http';
   standalone: true,
   imports: [IonicModule, RouterModule, FormsModule, CommonModule]
 })
-<<<<<<< HEAD:src/app/ayudabp/ayudabp.page.ts
 export class AyudabpPage implements OnInit {
-=======
-export class TabiaPage implements OnInit {
+
   newMessage: string = '';
-  messages: { text: string; sender: 'user' | 'bot' }[] = [
-    { text: '¡Hola! Soy chatblood. ¿En qué puedo ayudarte?', sender: 'bot' }
-  ];
+  messages: { text: string; sender: 'user' | 'bot' }[] = [];
 
   constructor(private http: HttpClient) {}
->>>>>>> origin/zChao:src/app/tabia/tabia.page.ts
 
   ngOnInit() {}
 
@@ -39,7 +34,6 @@ export class TabiaPage implements OnInit {
       next: (res) => {
         let respuesta = res.response;
 
-        // (Opcional) puedes agregar un emoji o estilo si validación no es "sí"
         if (res.validacion === 'no') {
           respuesta = '❌ ' + respuesta;
         } else if (res.validacion === 'no sé') {

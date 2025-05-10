@@ -137,6 +137,6 @@ export class LoginPage {
   }
 
   goBack() {
-    this.router.navigate(['/menu/puntosdonacion']);
+    this.router.navigate(['/menu/index']);
   }
 }

@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { OnInit } from '@angular/core';
-=======
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
->>>>>>> origin/zChao
 
 @Component({
   selector: 'app-root',
@@ -23,7 +18,6 @@ export class AppComponent implements OnInit {
   checkSession() {
     const token = localStorage.getItem('authToken');
 
-<<<<<<< HEAD
     const isOnLogin = this.router.url.includes('/login');
     const isOnHome = this.router.url.includes('/menu');
 
@@ -34,15 +28,3 @@ export class AppComponent implements OnInit {
     }
   }
 }
-=======
-    const isOnLogin = this.router.url.includes('/tab0');
-    const isOnHome = this.router.url.includes('/tabs');
-
-    if (token && !isOnHome) {
-      this.router.navigate(['/tabs/tab1']);
-    } else if (!token && !isOnLogin) {
-      this.router.navigate(['/tab0']);
-    }
-  }
-}
->>>>>>> origin/zChao

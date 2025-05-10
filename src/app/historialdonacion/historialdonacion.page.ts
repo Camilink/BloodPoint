@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-<<<<<<< HEAD:src/app/historialdonacion/historialdonacion.page.ts
 import { IonicModule } from '@ionic/angular';
-=======
-import { IonHeader } from "@ionic/angular/standalone";
-import { IonicModule, ToastController } from '@ionic/angular';
->>>>>>> origin/zChao:src/app/tab4/tab4.page.ts
 import { RouterModule, Routes } from '@angular/router';
+import { ToastController } from '@ionic/angular';
 
 import { Router } from '@angular/router';
 

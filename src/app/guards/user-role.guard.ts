@@ -16,11 +16,7 @@ export class UserRoleGuard implements CanActivate {
     }
 
     // Si no es donante, redirige a una vista restringida o tab1
-<<<<<<< HEAD
     this.router.navigate(['/menu/index']);
-=======
-    this.router.navigate(['/tabs/tab1']);
->>>>>>> origin/zChao
     return false;
   }
 }
