@@ -1,69 +1,58 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      BloodPoint
-    </ion-title>
+    <ion-title>BloodPoint</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Add oval background elements -->
+  <!-- Fondos ovalados -->
   <div class="ovalo ovalotop"></div>
   <div class="ovalo ovalomid"></div>
 
   <!-- Contenedor del mapa -->
   <div class="map-container">
     <div id="map"></div>
-    <!-- Notificación de sangre -->
+    
+    <!-- Notificación de sangre dinámica -->
     <div class="blood-notification">
       <div class="notification-content">
         <ion-icon name="water"></ion-icon>
         <span>¡Se necesita sangre O+ en Centro de Donación A!</span>
-        <ion-button fill="clear" color="light"><p style="color: white; text-decoration: underline;" >ver más</p></ion-button>
+        <ion-button fill="clear" color="light">
+          <p style="color: white; text-decoration: underline;">Ver más</p>
+        </ion-button>
       </div>
     </div>
-    <!-- Botón para añadir nuevo centro -->
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="add-center-fab" *ngIf="isRepresentante">
-      <ion-fab-button (click)="addNewDonationCenter()" color="light">
+
+      <!-- Botón para añadir nuevo centro, solo si el usuario es representante -->
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isRepresentante">
+      <ion-fab-button (click)="addNewDonationCenter()">
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>
     </ion-fab>
   </div>
 
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Index</ion-title>
-    </ion-toolbar>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  </ion-header>
-
-<ion-card>
-  <ion-card-content>
-    <ion-list>
-      <ion-label>1800 mL</ion-label>
-      <p></p>
-      <ion-label>Última donación: </ion-label>
-    </ion-list>
-  </ion-card-content>
-</ion-card>
-
-<ion-card class="donation-centers-card">
-  <ion-card-header>
-    <ion-card-title><p style="color: #DD4B4B;">Puntos de Donación</p></ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <div class="scrollable-container">
-      <ion-list>
-        <ion-item button *ngFor="let center of sortedCenters" (click)="focusOnCenter(center)">
-          <ion-label>
-            <h3>{{center.name}}</h3>
-            <p class="address">{{center.address}}</p>
-            <p class="distance">a {{center.distance}} kilómetros</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-    </div>
-  </ion-card-content>
-</ion-card>
-
+  <ion-card class="donation-centers-card">
+    <ion-card-header>
+      <ion-card-title>
+        <p style="color: #DD4B4B;">Puntos de Donación</p>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="scrollable-container">
+        <ion-list>
+          <ion-item *ngFor="let center of sortedCenters" (click)="focusOnCenter(center)">
+            <ion-label>
+              <h3>{{ center.nombre_centro }}</h3>
+              <p class="address">{{ center.direccion_centro }}</p>
+              <p class="comuna">{{ center.comuna }}</p>
+              <p class="telefono">{{ center.telefono || 'No disponible' }}</p>
+              <p class="fecha">Creado el {{ center.fecha_creacion }}</p>
+              <p class="distance">Distancia: {{ center.distancia }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

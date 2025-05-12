@@ -1,8 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Donar
-    </ion-title>
+    <ion-title>Donar</ion-title>
   </ion-toolbar>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
@@ -12,10 +10,10 @@
   <div class="fixed-header">
     <!-- Buscador -->
     <div class="center-wrapper">
-      <ion-searchbar show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
+      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="searchCenters()" show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
     </div>
-    
-    <!-- Ubicacion y Horario -->
+
+    <!-- Ubicación-->
     <ion-grid [fixed]="true">
       <ion-row>
         <ion-col>
@@ -33,43 +31,34 @@
           </ion-item>
         </ion-col>
         <ion-col>
+          <!-- Horario -->
           <ion-item class="select-item">
             <ion-select [(ngModel)]="selectedSchedule" 
                        (ionChange)="filterBySchedule()"
                        placeholder="Horario" 
                        interface="popover"
                        [disabled]="!selectedLocation">
-              <ion-select-option *ngFor="let schedule of uniqueSchedules" 
-                                [value]="schedule">
-                {{schedule}}
-              </ion-select-option>
+              <ion-select-option value="morning">Mañana</ion-select-option>
+              <ion-select-option value="afternoon">Tarde</ion-select-option>
+              <ion-select-option value="evening">Noche</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-col>
       </ion-row>
     </ion-grid>
-    
-    <!-- Filter Actions -->
+
+    <!-- Acciones de filtro -->
     <div class="filter-actions">
       <div class="open-toggle-wrapper">
-        <ion-button fill="clear" 
-                    size="small" 
-                    (click)="toggleOpenOnly()">
+        <ion-button fill="clear" size="small" (click)="toggleOpenOnly()">
           <ion-icon [name]="showOnlyOpen ? 'time' : 'time-outline'" slot="start"></ion-icon>
           Mostrar solo abiertos
-          <ion-toggle [(ngModel)]="showOnlyOpen" 
-                     (ionChange)="filterCenters()"
-                     (click)="$event.stopPropagation()"
-                     slot="end">
-          </ion-toggle>
+          <ion-toggle [(ngModel)]="showOnlyOpen" (ionChange)="filterCenters()" (click)="$event.stopPropagation()" slot="end"></ion-toggle>
         </ion-button>
       </div>
       
       <div class="reset-button-wrapper">
-        <ion-button fill="clear" 
-                    size="small" 
-                    (click)="resetFilters()"
-                    [disabled]="!selectedLocation && !selectedSchedule && !showOnlyOpen">
+        <ion-button fill="clear" size="small" (click)="resetFilters()" [disabled]="!selectedLocation && !selectedSchedule && !showOnlyOpen">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
           Limpiar filtros
         </ion-button>
@@ -77,30 +66,31 @@
     </div>
   </div>
 
-  <!-- Scrollable Content -->
+  <!-- Contenido desplazable -->
   <div class="scrollable-content">
     <ion-list>
-      <ion-item *ngFor="let center of filteredCenters" class="center-item">
+      <ion-item *ngFor="let center of filteredCenters" class="center-item" 
+                (click)="center.id_centro ? showDetails(center.id_centro) : null">
         <ion-label>
           <div class="center-header">
-            <h2>{{center.name}}</h2>
+            <h2>{{center.nombre_centro}}</h2>
             <span class="distance">
               <i class="fa-solid fa-location-dot"></i>
-              {{center.distance}} km
+              {{center.distancia}}
             </span>
           </div>
-          <p class="address">{{center.address}}</p>
-          <div class="schedule">
-            <i class="fa-solid fa-circle" [style.color]="isOpen(center) ? '#00ff04' : '#ff0000'"></i>
-            <i class="fa-solid fa-clock"></i>
-            <span>{{center.schedules[0].days}}: {{center.schedules[0].hours}}</span>
-          </div>
+          <p class="address">{{center.direccion_centro}}</p>
+          <p class="commune">
+            <i class="fa-solid fa-location-dot"></i>
+            {{center.comuna}}
+          </p>
           <p class="contact">
             <i class="fa-solid fa-phone"></i>
-            {{center.contacts[0]}}
+            {{center.telefono}}
           </p>
+          
           <ion-button expand="block" 
-                      (click)="showDetails(center.name)"
+                      (click)="center.id_centro ? showDetails(center.id_centro) : null" 
                       color="danger">
             Ver Detalles
           </ion-button>

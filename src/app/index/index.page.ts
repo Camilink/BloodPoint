@@ -1,13 +1,14 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import * as mapboxgl from 'mapbox-gl';
 import { environment } from 'src/environments/environment';
-import { ApiService } from '../services/api.service';
-import { GeocodingService } from '../services/geocoding.service';
 import { DonationCentersService } from '../services/donation-centers.service';
+import { GeocodingService } from '../services/geocoding.service';
+import { Subscription } from 'rxjs';
 import { DonationCenter } from '../interfaces/donation-center.interface';
-import { AuthService } from '../services/auth.interceptor';
+import { UserService } from '../services/user.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-index',
@@ -16,405 +17,328 @@ import { AuthService } from '../services/auth.interceptor';
   standalone: true,
   imports: [CommonModule, IonicModule]
 })
-export class IndexPage implements OnInit, AfterViewInit {
-  userName = 'JohnDoe';
-  totalDonated = 1800;
-  lastDonationDate = '2 de abril de 2025';
-  
+export class IndexPage implements OnInit, OnDestroy {
   donationCenters: DonationCenter[] = [];
   isRepresentante: boolean = false;
-
-  donantes: any[] = [];
+  sortedCenters: DonationCenter[] = [];
+  private centersSubscription!: Subscription;
   private map!: mapboxgl.Map;
-  private currentLocationMarker?: mapboxgl.Marker;
-  private tempMarker?: mapboxgl.Marker;
-  private isAddingCenter = false;
-  isFullscreen = false;
-  style = 'mapbox://styles/mapbox/streets-v12';
-  lat = -33.4489;
-  lng = -70.6483;
-  private currentLocation: [number, number] = [0, 0];
-  private routeLayer?: mapboxgl.Layer;
-
-  get sortedCenters(): DonationCenter[] {
-    return this.donationCenters.sort((a, b) => {
-      const distanceA = parseFloat(a.distance) || 0;
-      const distanceB = parseFloat(b.distance) || 0;
-      return distanceA - distanceB;
-    });
-  }
+  private currentLocation: [number, number] | null = null;
+  userId: number = 0;
 
   constructor(
-    private ApiService: ApiService,
-    private toastController: ToastController,
-    private alertController: AlertController,
+    private donationService: DonationCentersService,
     private geocodingService: GeocodingService,
-    private donationCentersService: DonationCentersService,
-    private authService: AuthService
+    private toastController: ToastController,
+    private userService: UserService,
+    private alertController: AlertController
   ) {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
 
   ngOnInit() {
-    console.log('Iniciando componente');
-    this.donationCenters = this.donationCentersService.getCenters();
-    this.updateDonationCenters();
-    this.isRepresentante = this.authService.getUserRole() === 'representante';
+    this.getUserId();
+    this.checkIfRepresentante();
+    this.loadCenters();
+    this.requestLocationPermission();
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this.initializeMap();
-    }, 100);
-  }
-
-  cargarDonantes() {
-    this.ApiService.getDonantes().subscribe(data => {
-      this.donantes = data;
+  private getUserId() {
+    this.userService.getUserId().subscribe((id) => {
+      this.userId = id;
     });
   }
 
-  showFullMap() {
-    this.isFullscreen = true;
-    if (this.map) {
-      this.map.resize();
-      this.map.setZoom(15);
-      const mapContainer = document.getElementById('map');
-      if (mapContainer) {
-        mapContainer.style.height = '100vh';
-        mapContainer.style.zIndex = '999';
-        mapContainer.style.position = 'fixed';
-        mapContainer.style.top = '0';
-        mapContainer.style.left = '0';
-      }
+  checkIfRepresentante() {
+    this.userService.isRepresentante(Number(this.userId)).subscribe({
+      next: (res) => this.isRepresentante = res,
+      error: () => this.isRepresentante = false
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.centersSubscription) {
+      this.centersSubscription.unsubscribe();
     }
   }
 
-  exitFullMap() {
-    this.isFullscreen = false;
-    const mapContainer = document.getElementById('map');
-    if (mapContainer) {
-      mapContainer.style.height = '60vh';
-      mapContainer.style.position = 'relative';
-      mapContainer.style.zIndex = '1';
-    }
-    if (this.map) {
-      this.map.resize();
-    }
+  private loadCenters() {
+    this.centersSubscription = this.donationService.getCenters().subscribe({
+      next: async (centers) => {
+        this.donationCenters = await Promise.all(
+          centers.map(center => this.transformCenter(center))
+        );
+        this.sortedCenters = [...this.donationCenters];
+        this.initializeMap();
+        this.addDonationCenterMarkers(); // Llamada a la nueva función agregada
+      },
+      error: async (error) => {
+        console.error('Error cargando centros:', error);
+        const toast = await this.toastController.create({
+          message: 'Error al cargar centros de donación',
+          duration: 3000,
+          position: 'top',
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    });
   }
 
-  private async updateDonationCenters() {
-    for (const center of this.donationCenters) {
-      const coords = await this.geocodingService.getCoordinates(center.address);
-      if (coords) {
-        center.coordinates = coords;
-        console.log(`Actualizado ${center.name}:`, center.coordinates);
-      }
-    }
-    this.initializeMap();
+  private async transformCenter(apiCenter: any): Promise<DonationCenter> {
+    const coordenadas = await this.geocodingService.getCoordinates(apiCenter.direccion_centro);
+    return {
+      id_centro: apiCenter.id_centro,
+      nombre_centro: apiCenter.nombre_centro,
+      direccion_centro: apiCenter.direccion_centro,
+      comuna: apiCenter.comuna,
+      telefono: apiCenter.telefono,
+      fecha_creacion: apiCenter.fecha_creacion,
+      created_at: apiCenter.created_at,
+      id_representante: apiCenter.id_representante,
+      distancia: 'Calculando...',
+      coordenadas
+    };
   }
 
   private initializeMap(): void {
-    try {
-      if (!(mapboxgl as any).accessToken) {
-        console.error('Token de Mapbox no configurado');
-        return;
-      }
+    this.map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/outdoors-v11',
+      center: [-70.6483, -33.4489], // Santiago de Chile
+      zoom: 12,
+      attributionControl: false
+    });
 
-      this.map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [this.lng, this.lat],
-        zoom: 13,
-        attributionControl: false
-      });
+    this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      this.map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      this.map.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        }),
-        'top-right'
-      );
-
-      this.map.on('load', () => {
-        console.log('Mapa cargado correctamente');
-        this.getCurrentLocation();
-        this.addDonationCenterMarkers();
-      });
-
-      this.map.on('error', (e) => {
-        console.error('Error del mapa:', e);
-      });
-
-    } catch (error) {
-      console.error('Error al inicializar mapa:', error);
-    }
+    this.map.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true
+      }),
+      'top-right'
+    );
   }
 
-  private getCurrentLocation() {
+  private async requestLocationPermission() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          this.currentLocation = [longitude, latitude];
-          
-          if (this.currentLocationMarker) {
-            this.currentLocationMarker.setLngLat(this.currentLocation);
-          } else {
-            this.currentLocationMarker = new mapboxgl.Marker({
-              color: '#4A89F3',
-              scale: 0.8
-            })
-            .setLngLat(this.currentLocation)
-            .addTo(this.map);
-          }
-
-          this.updateDistances();
-
-          this.map.flyTo({
-            center: this.currentLocation,
-            zoom: 15
-          });
+        async (position) => {
+          this.currentLocation = [position.coords.longitude, position.coords.latitude];
+          await this.calculateRoutes();
         },
-        (error) => {
-          console.error('Error getting location:', error);
+        async (error) => {
+          console.warn("Permiso de ubicación denegado:", error);
+          const toast = await this.toastController.create({
+            message: "Para calcular rutas, debes permitir el acceso a tu ubicación.",
+            duration: 3000,
+            position: "top",
+            color: "warning",
+          });
+          await toast.present();
+          this.currentLocation = null;
         }
       );
     }
   }
 
-  private updateDistances() {
-    this.donationCenters.forEach(center => {
+  async focusOnCenter(center: DonationCenter) {
+    if (center.coordenadas) {
+      this.map.flyTo({
+        center: center.coordenadas,
+        zoom: 15
+      });
+
       if (this.currentLocation) {
-        const distance = this.geocodingService.calculateDistance(
-          this.currentLocation[1],
-          this.currentLocation[0],
-          center.coordinates[1],
-          center.coordinates[0]
-        );
-        center.distance = distance.toFixed(1);
+        await this.getRouteToCenter(center.coordenadas);
+      } else {
+        console.warn("Ubicación del usuario no disponible para calcular la ruta.");
+      }
+    }
+  }
+
+  private async getRouteToCenter(destination: [number, number]) {
+    if (!this.currentLocation) return;
+
+    const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${this.currentLocation[0]},${this.currentLocation[1]};${destination[0]},${destination[1]}?geometries=geojson&access_token=${environment.mapbox.accessToken}`;
+
+    try {
+      const response = await fetch(routeUrl);
+      const data = await response.json();
+
+      if (!data.routes.length) throw new Error('No se encontró una ruta.');
+
+      this.displayRoute(data.routes[0].geometry);
+    } catch (error) {
+      console.error("Error obteniendo la ruta:", error);
+    }
+  }
+
+  private displayRoute(routeGeometry: any) {
+    if (this.map.getLayer('route-line')) {
+      this.map.removeLayer('route-line');
+      this.map.removeSource('route');
+    }
+
+    this.map.addSource('route', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: routeGeometry
+      }
+    });
+
+    this.map.addLayer({
+      id: 'route-line',
+      type: 'line',
+      source: 'route',
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      paint: {
+        'line-color': '#DD4B4B',
+        'line-width': 5
       }
     });
   }
 
-  private addDonationCenterMarkers(): void {
-    this.donationCenters.forEach(center => {
-      const el = document.createElement('div');
-      el.className = 'donation-marker';
-      el.innerHTML = `<ion-icon name="water" style="color: #DD4B4B; font-size: 24px;"></ion-icon>`;
+  private async calculateRoutes() {
+    if (!this.currentLocation) {
+      console.warn("Ubicación del usuario no disponible.");
+      return;
+    }
 
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <h4>${center.name}</h4>
-          <p>${center.address}</p>
-          <p>Distancia: ${center.distance} km</p>
-          ${center.schedules.map(schedule => `<p>${schedule.days}: ${schedule.hours}</p>`).join('')}
-          ${center.contacts.map(contact => `<p>Contacto: ${contact}</p>`).join('')}
-        `);
+    for (let center of this.donationCenters) {
+      if (!center.coordenadas) continue;
 
-      new mapboxgl.Marker({
-        element: el,
-        color: '#DD4B4B',
-        scale: 0.8
-      })
-      .setLngLat(center.coordinates)
-      .setPopup(popup)
-      .addTo(this.map);
+      try {
+        const response = await this.geocodingService.getRoute(this.currentLocation, center.coordenadas);
+        center.distancia = response.distance >= 0 ? response.distance.toFixed(1) + " km" : "No disponible";
+      } catch (error) {
+        console.error("Error calculando distancia:", error);
+        center.distancia = "No disponible";
+      }
+    }
+
+    this.sortCenters();
+  }
+
+  private sortCenters() {
+    this.sortedCenters = [...this.donationCenters].sort((a, b) => {
+      const distanceA = parseFloat(a.distancia || '0');
+      const distanceB = parseFloat(b.distancia || '0');
+      return distanceA - distanceB;
     });
   }
 
   async addNewDonationCenter() {
-    this.isAddingCenter = true;
-    
-    this.map.getCanvas().style.cursor = 'crosshair';
-
-    const toast = await this.toastController.create({
-      message: 'Haz clic en el mapa para colocar el nuevo centro de donación',
-      duration: 3000,
-      position: 'top',
-      color: 'light'
-    });
-    toast.present();
-
-    this.map.once('click', async (e) => {
-      const coordinates = e.lngLat;
-      
-      const alert = await this.alertController.create({
-        header: 'Nuevo Centro de Donación',
-        inputs: [
-          {
-            name: 'name',
-            type: 'text',
-            placeholder: 'Nombre del centro'
-          },
-          {
-            name: 'address',
-            type: 'text',
-            placeholder: 'Dirección'
-          }
-        ],
-        buttons: [
-          {
-            text: 'Cancelar',
-            role: 'cancel',
-            handler: () => {
-              this.isAddingCenter = false;
-              this.map.getCanvas().style.cursor = '';
-              if (this.tempMarker) {
-                this.tempMarker.remove();
-              }
-            }
-          },
-          {
-            text: 'Guardar',
-            handler: async (data) => {
-              const coords = await this.geocodingService.getCoordinates(data.address);
-              
-              if (coords) {
-                const newCenter: DonationCenter = {
-                  name: data.name,
-                  address: data.address,
-                  distance: '0',
-                  coordinates: coords,
-                  schedules: [],
-                  contacts: []
-                };
-
-                this.donationCenters.push(newCenter);
-                this.addDonationCenterMarker(newCenter);
-                this.saveDonationCenter(newCenter);
-              } else {
-                this.showToast('No se pudo encontrar la dirección especificada');
-              }
-              
-              this.isAddingCenter = false;
-              this.map.getCanvas().style.cursor = '';
-            }
-          }
-        ]
-      });
-
-      await alert.present();
-    });
-  }
-
-  private saveDonationCenter(center: DonationCenter) {
-    console.log('Guardando nuevo centro:', center);
-  }
-
-  private addDonationCenterMarker(center: DonationCenter) {
-    const el = document.createElement('div');
-    el.className = 'donation-marker';
-    el.innerHTML = `<ion-icon name="water" style="color: #DD4B4B; font-size: 24px;"></ion-icon>`;
-
-    const popup = new mapboxgl.Popup({ offset: 25 })
-      .setHTML(`
-        <h4>${center.name}</h4>
-        <p>${center.address}</p>
-      `);
-
-    new mapboxgl.Marker({
-      element: el,
-      color: '#DD4B4B',
-      scale: 0.8
-    })
-    .setLngLat(center.coordinates)
-    .setPopup(popup)
-    .addTo(this.map);
-  }
-
-  async focusOnCenter(center: DonationCenter) {
-    if (!this.map) return;
-
-    this.removeRoute();
-
-    const routeData = await this.geocodingService.getRoute(
-      this.currentLocation,
-      center.coordinates
-    );
-
-    if (routeData) {
-      this.addRoute(routeData.route);
-
-      const distance = (routeData.distance / 1000).toFixed(1);
-      const duration = Math.round(routeData.duration / 60);
-      this.showToast(
-        `Navegando a ${center.name} - ${distance}km (${duration} min)`
-      );
-    }
-
-    const bounds = new mapboxgl.LngLatBounds()
-      .extend(this.currentLocation)
-      .extend(center.coordinates);
-
-    this.map.fitBounds(bounds, {
-      padding: 100,
-      duration: 1000
-    });
-  }
-
-  private addRoute(geometry: any) {
-    if (this.map.getSource('route')) {
-      (this.map.getSource('route') as mapboxgl.GeoJSONSource).setData({
-        type: 'Feature',
-        properties: {},
-        geometry: geometry
-      });
-    } else {
-      this.map.addSource('route', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: geometry
-        }
-      });
-
-      this.map.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
+    const alert = await this.alertController.create({
+      header: 'Nuevo Centro de Donación',
+      inputs: [
+        {
+          name: 'nombre',
+          type: 'text',
+          placeholder: 'Nombre del centro'
         },
-        paint: {
-          'line-color': '#DD4B4B',
-          'line-width': 4,
-          'line-opacity': 0.8
+        {
+          name: 'direccion',
+          type: 'text',
+          placeholder: 'Dirección del centro'
         }
-      });
-    }
-  }
-
-  private removeRoute() {
-    if (this.map.getLayer('route')) {
-      this.map.removeLayer('route');
-    }
-    if (this.map.getSource('route')) {
-      this.map.removeSource('route');
-    }
-  }
-
-  private async showToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      position: 'bottom',
-      cssClass: 'map-navigation-toast',
+      ],
       buttons: [
         {
-          icon: 'close',
+          text: 'Cancelar',
           role: 'cancel'
+        },
+        {
+          text: 'Crear',
+          handler: async (data) => {
+            if (!data.nombre || !data.direccion) {
+              this.showToast('Debe completar ambos campos.', 'warning');
+              return false;
+            }
+
+            try {
+              const coordenadas = await this.geocodingService.getCoordinates(data.direccion);
+
+              const nuevoCentro = {
+                nombre_centro: data.nombre,
+                direccion_centro: data.direccion,
+                comuna: '',
+                telefono: '',
+                fecha_creacion: new Date().toISOString().split('T')[0],
+                id_representante: this.userId
+              };
+
+              const creado = await this.donationService.createDonationCenter(nuevoCentro).toPromise();
+
+              if (!creado) {
+                this.showToast('No se pudo crear el centro.', 'danger');
+                return false;
+              }
+
+              creado.coordenadas = coordenadas;
+
+              this.donationCenters.push(creado);
+              this.sortedCenters.push(creado);
+              this.addMarkerToMap(creado); // Agregamos el marcador al mapa
+              this.showToast('Centro creado con éxito.', 'success');
+              return true;
+            } catch (err) {
+              console.error(err);
+              this.showToast('Error al crear el centro.', 'danger');
+              return false;
+            }
+          }
         }
       ]
     });
-    toast.present();
+
+    await alert.present();
+  }
+
+  private addMarkerToMap(center: DonationCenter): void {
+    if (center.coordenadas) {
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(`
+          <div>
+            <h4>${center.nombre_centro}</h4>
+            <p><strong>Comuna:</strong> ${center.comuna}</p>
+            <p><strong>Dirección:</strong> ${center.direccion_centro}</p>
+            <p><strong>Distancia:</strong> ${center.distancia}</p>
+            <p><strong>Teléfono:</strong> ${center.telefono || 'No disponible'}</p>
+          </div>
+        `);
+        
+      new mapboxgl.Marker({ color: '#DD4B4B', scale: 0.8 })
+        .setLngLat(center.coordenadas)
+        .setPopup(popup)
+        .addTo(this.map);
+    }
+  }
+
+
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'top',
+      color
+    });
+    await toast.present();
+  }
+
+  // Nueva función para agregar los marcadores de los centros de donación en el mapa
+  private addDonationCenterMarkers() {
+    this.donationCenters.forEach(center => {
+      if (center.coordenadas) {
+        this.addMarkerToMap(center);
+      }
+    });
   }
 }

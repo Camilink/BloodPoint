@@ -9,7 +9,6 @@
   <div class="ovalo ovalotop"></div>
   <div class="ovalo ovalomid"></div>
 
-  <!-- Header with back button -->
   <div class="header-section">
     <ion-back-button 
       defaultHref="/menu/puntosdonacion"
@@ -17,26 +16,23 @@
       text="" 
       icon="arrow-back">
     </ion-back-button>
-    <h1>{{center?.name}}</h1>
+    <h1>{{ center?.nombre_centro || 'Nombre no disponible' }}</h1>
   </div>
 
-  <!-- Details Card -->
   <div class="details-card" *ngIf="center">
     <div class="info-item">
       <i class="fa-solid fa-map-location-dot"></i>
       <div class="info-content">
         <span class="label">Dirección:</span>
-        <span class="value">{{center?.address || 'No disponible'}}</span>
+        <span class="value">{{ center.direccion_centro || 'No disponible' }}</span>
       </div>
     </div>
 
     <div class="info-item">
-      <i class="fa-regular fa-clock"></i>
+      <i class="fa-solid fa-location-dot"></i>
       <div class="info-content">
-        <span class="label">Horario:</span>
-        <div class="value" *ngFor="let schedule of center?.schedules">
-          {{schedule?.days}}: {{schedule?.hours}}
-        </div>
+        <span class="label">Comuna:</span>
+        <span class="value">{{ center.comuna || 'No disponible' }}</span>
       </div>
     </div>
 
@@ -44,7 +40,7 @@
       <i class="fa-solid fa-phone"></i>
       <div class="info-content">
         <span class="label">Teléfono:</span>
-        <span class="value" *ngFor="let contact of center?.contacts">{{contact}}</span>
+        <span class="value">{{ center.telefono || 'No disponible' }}</span>
       </div>
     </div>
 
@@ -52,7 +48,7 @@
       <i class="fa-solid fa-location-dot"></i>
       <div class="info-content">
         <span class="label">Distancia:</span>
-        <span class="value">{{center.distance || '0'}} kilómetros</span>
+        <span class="value">{{ center.distancia || 'Calculando...' }} kilómetros</span>
       </div>
     </div>
   </div>
