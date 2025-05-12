@@ -139,4 +139,24 @@ export class LoginPage {
   goBack() {
     this.router.navigate(['/menu/puntosdonacion']);
   }
+
+  requestLocationPermission() {
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log("Ubicación permitida");
+        localStorage.setItem('userLocation', JSON.stringify({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude
+        }));
+      },
+      (error) => {
+        console.warn("Ubicación denegada:", error);
+        localStorage.removeItem('userLocation');
+      }
+    );
+  } else {
+    console.warn("Geolocalización no disponible.");
+  }
+}
 }

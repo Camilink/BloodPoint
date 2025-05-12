@@ -12,6 +12,7 @@ ion-content {
       --border-radius: 20px;
       --placeholder-color: #666;
       --icon-color: #666;
+      --color: #000;
     }
   }
 
@@ -24,16 +25,16 @@ ion-content {
 
         ion-select {
           --placeholder-color: #666;
-          --color: #333333;  // Text color when selected
+          --color: #333333;
           width: 100%;
           padding: 8px;
 
           &::part(text) {
-            color: #333333;  // Ensures selected text is dark
+            color: #333333;
           }
 
           &::part(icon) {
-            color: #666666;  // Arrow icon color
+            color: #666666;
           }
         }
       }
@@ -432,21 +433,12 @@ ion-select {
     color: #333;
   }
 
-  .schedule {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 8px 0;
-    color: #333333; // Added this line for text color
+  .commune {
+    margin: 4px 0;
     
     i {
-      &.fa-clock {
-        color: #666;
-      }
-    }
-
-    span {
-      color: #333333; // Added this line specifically for the schedule text
+      color: #666;
+      margin-right: 8px;
     }
   }
 

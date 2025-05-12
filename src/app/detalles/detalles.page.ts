@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule, NavController, ToastController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { DonationCentersService } from '../services/donation-centers.service';
 import { GeocodingService } from '../services/geocoding.service';
 import { DonationCenter } from '../interfaces/donation-center.interface';
-import { CommonModule } from '@angular/common';
-import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-detalles',
@@ -15,61 +15,103 @@ import { IonicModule, NavController } from '@ionic/angular';
 })
 export class DetallesPage implements OnInit {
   center?: DonationCenter;
-  currentLocation: [number, number] = [0, 0];
+  private currentLocation: [number, number] | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private donationService: DonationCentersService,
     private geocodingService: GeocodingService,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private toastController: ToastController
   ) {}
 
   ngOnInit() {
-    this.getCurrentLocation();
+    this.requestLocationPermission();
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-      console.log('ID recibido:', id); // Para debug
-      
       if (id) {
-        const foundCenter = this.donationService.getCenterById(id);
-        console.log('Centro encontrado:', foundCenter); // Para debug
-        
-        if (foundCenter) {
-          this.center = foundCenter;
-          this.updateDistance();
-        }
+        this.donationService.getCenterById(+id).subscribe({
+          next: async (center) => {
+            console.log("Centro recibido:", center);
+
+            if (!center) {
+              console.warn("No se encontró el centro con ID:", id);
+              this.navCtrl.navigateBack('/menu/puntosdonacion');
+              return;
+            }
+
+            this.center = center;
+
+            // Obtener coordenadas si están disponibles
+            if (!center.coordenadas || !Array.isArray(center.coordenadas) || center.coordenadas.length !== 2) {
+              center.coordenadas = await this.geocodingService.getCoordinates(center.direccion_centro);
+            }
+
+            if (!center.coordenadas) {
+              console.warn("Centro sin coordenadas válidas:", center);
+              this.center.distancia = "Coordenadas no disponibles";
+            } else if (this.currentLocation) {
+              await this.calculateDistance(center);
+            }
+          },
+          error: async (error) => {
+            console.error('Error cargando el centro:', error);
+            const toast = await this.toastController.create({
+              message: "No se pudo cargar el centro de donación.",
+              duration: 3000,
+              position: "top",
+              color: "danger",
+            });
+            await toast.present();
+            this.navCtrl.navigateBack('/menu/puntosdonacion');
+          }
+        });
       }
     });
   }
 
-  private getCurrentLocation() {
+  private async requestLocationPermission() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          this.currentLocation = [longitude, latitude];
-          this.updateDistance();
+        async (position) => {
+          this.currentLocation = [position.coords.longitude, position.coords.latitude];
+          console.log("Ubicación obtenida:", this.currentLocation);
         },
-        (error) => {
-          console.error('Error getting location:', error);
+        async (error) => {
+          console.warn("Permiso de ubicación denegado:", error);
+          const toast = await this.toastController.create({
+            message: "Para calcular rutas, debes permitir el acceso a tu ubicación.",
+            duration: 3000,
+            position: "top",
+            color: "warning",
+          });
+          await toast.present();
+          this.currentLocation = null;
         }
       );
     }
   }
 
-  private updateDistance() {
-    if (this.center && this.currentLocation[0] !== 0) {
-      const distance = this.geocodingService.calculateDistance(
-        this.currentLocation[1],
-        this.currentLocation[0],
-        this.center.coordinates[1],
-        this.center.coordinates[0]
-      );
-      this.center.distance = distance.toFixed(1);
+  private async calculateDistance(center: DonationCenter) {
+    if (!this.currentLocation || !center.coordenadas || center.coordenadas.length !== 2) {
+      console.warn("No se puede calcular la distancia, coordenadas inválidas:", center.coordenadas);
+      center.distancia = "Coordenadas no disponibles";
+      return;
+    }
+
+    try {
+      console.log("Obteniendo ruta desde", this.currentLocation, "hasta", center.coordenadas);
+      const response = await this.geocodingService.getRoute(this.currentLocation, center.coordenadas);
+
+      center.distancia = response.distance >= 0 ? response.distance.toFixed(1) + " km" : "No disponible";
+    } catch (error) {
+      console.error("Error obteniendo distancia:", error);
+      center.distancia = "No disponible";
     }
   }
 
   goBack() {
-    this.navCtrl.navigateBack('/menu/puntosdonacion');
+    this.navCtrl.back();
   }
 }
