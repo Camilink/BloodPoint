@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { CommonModule } from '@angular/common';
 import { DonanteFormulario } from '../interfaces/donante-formulario';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-registrarse',
@@ -33,7 +34,8 @@ export class RegistrarsePage implements OnInit {
 
   constructor(
     private apiService: ApiService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private router: Router,
   ) {}
 
   validarRut(rut: string): boolean {
@@ -100,7 +102,7 @@ export class RegistrarsePage implements OnInit {
       return;
     }
 
-    if (formValue.password !== formValue.confirmPassword) {
+    if (formValue.password !== formValue.repetirPassword) {
       await this.showToast('Las contraseñas no coinciden', 'warning');
       return;
     }
@@ -138,6 +140,7 @@ export class RegistrarsePage implements OnInit {
         next: async (res) => {
           console.log('Registro exitoso:', res);
           await this.showToast('Registro completado correctamente', 'success');
+          this.router.navigate(['/login']);
         },
         error: async (err) => {
           console.error('Error en el registro:', err);

@@ -17,50 +17,23 @@
     <h1>Historial de donaciones</h1>
   </div>
 
-  <!-- Donation List -->
-  <ion-list>
-    <ion-item button [routerLink]="['/menu/detallesh']">
-      <div class="donation-icon">
-        <i class="fa-solid fa-droplet"></i>
-      </div>
-      <ion-label>
-        <h2>2 de abril de 2025</h2>
-        <p>Centro de donación habitual</p>
-      </ion-label>
-      <i class="fas fa-chevron-right" slot="end"></i>
-    </ion-item>
+  <!-- Donation List --><ion-list *ngIf="donaciones.length > 0; else sinDonaciones">
+  <ion-item *ngFor="let don of donaciones" button [routerLink]="['/menu/detallesh']">
+    <div class="donation-icon">
+      <i class="fa-solid fa-droplet"></i>
+    </div>
+    <ion-label>
+      <h2>{{ don.fecha_donacion | date: 'longDate' }}</h2>
+      <p>{{ don.centro }}</p>
+    </ion-label>
+    <i class="fas fa-chevron-right" slot="end"></i>
+  </ion-item>
+</ion-list>
 
-    <ion-item button [routerLink]="['/menu/detallesh']">
-      <div class="donation-icon">
-        <i class="fa-solid fa-droplet"></i>
-      </div>
-      <ion-label>
-        <h2>18 de enero de 2025</h2>
-        <p>Donación Habitual</p>
-      </ion-label>
-      <i class="fas fa-chevron-right" slot="end"></i>
-    </ion-item>
+<ng-template #sinDonaciones>
+  <ion-text color="medium">
+    <p class="ion-padding">No hay donaciones registradas.</p>
+  </ion-text>
+</ng-template>
 
-    <ion-item button [routerLink]="['/menu/detallesh']">
-      <div class="donation-icon">
-        <i class="fa-solid fa-droplet"></i>
-      </div>
-      <ion-label>
-        <h2>6 de marzo 2024</h2>
-        <p>Donación de reposición</p>
-      </ion-label>
-      <i class="fas fa-chevron-right" slot="end"></i>
-    </ion-item>
-
-    <ion-item button [routerLink]="['/menu/detallesh']">
-      <div class="donation-icon">
-        <i class="fa-solid fa-droplet"></i>
-      </div>
-      <ion-label>
-        <h2>3 de noviembre de 2022</h2>
-        <p>Donación de reposición</p>
-      </ion-label>
-      <i class="fas fa-chevron-right" slot="end"></i>
-    </ion-item>
-  </ion-list>
 </ion-content>

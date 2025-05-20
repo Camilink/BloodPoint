@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { ToastController } from '@ionic/angular';
-
+import { ApiService } from '../services/api.service';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 @Component({
@@ -10,30 +11,30 @@ import { Router } from '@angular/router';
   templateUrl: './Historialdonacion.page.html',
   styleUrls: ['./Historialdonacion.page.scss'],
   standalone: true,
-  imports: [IonicModule, RouterModule],
+  imports: [IonicModule, RouterModule, CommonModule],
 })
 export class HistorialdonacionPage implements OnInit {
+  donaciones: any[] = [];
 
-  constructor(private router: Router, private toastController: ToastController) {}
+  constructor(private router: Router,
+    private toastController: ToastController,
+    private apiService: ApiService
+) {}
+ngOnInit() {
+  this.apiService.getHistorialDonaciones().subscribe({
+    next: (data) => {
+      this.donaciones = data.donaciones;
+    },    
+    error: async (err) => {
+      console.error('Error al obtener historial:', err);
+      const toast = await this.toastController.create({
+        message: 'Error al cargar el historial de donaciones.',
+        duration: 2000,
+        color: 'danger'
+      });
+      toast.present();
+    }
+  });
+}
 
-  ngOnInit() {
-  }
-
-  async cerrarSesion() {
-    // Eliminar token del localStorage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('tipoUsuario');
-    // Mostrar feedback al usuario
-    const toast = await this.toastController.create({
-      message: 'Sesión cerrada correctamente.',
-      duration: 2000,
-      color: 'success',
-      position: 'bottom'
-    });
-    await toast.present();
-
-    // Redirigir al login
-    this.router.navigate(['/tab0']);
-  }
 }

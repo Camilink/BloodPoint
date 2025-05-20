@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DonationCentersService } from '../services/donation-centers.service';
 import { GeocodingService } from '../services/geocoding.service';
 import { DonationCenter } from '../interfaces/donation-center.interface';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-detalles',
@@ -22,7 +23,8 @@ export class DetallesPage implements OnInit {
     private donationService: DonationCentersService,
     private geocodingService: GeocodingService,
     private navCtrl: NavController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private apiService: ApiService
   ) {}
 
   ngOnInit() {
@@ -114,4 +116,37 @@ export class DetallesPage implements OnInit {
   goBack() {
     this.navCtrl.back();
   }
+
+confirmarDonacion() {
+  const centroId = this.center?.id_centro;
+  if (!centroId) return;
+
+  const hoy = new Date().toISOString().split('T')[0]
+  const donacion = {
+    centro_id: centroId,
+    fecha_donacion: hoy,
+    cantidad_donacion: 1
+  };
+
+  this.apiService.registrarDonacionDesdeCentro(donacion).subscribe({
+    next: async () => {
+      const toast = await this.toastController.create({
+        message: 'Donación registrada con éxito.',
+        duration: 2000,
+        color: 'success',
+      });
+      toast.present();
+    },
+    error: async (error) => {
+      console.error('Error al registrar donación:', error);
+      const toast = await this.toastController.create({
+        message: 'No se pudo registrar la donación.',
+        duration: 2000,
+        color: 'danger',
+      });
+      toast.present();
+    }
+  });
+}
+
 }

@@ -67,8 +67,8 @@ const routes: Routes = [
   },
   {
     path: 'chatbot',
-    loadChildren: () => import('./chatbot/chatbot.page').then(m => m.ChatbotPage),
-    canActivate: [AuthGuard]
+    loadComponent: () => import('./chatbot/chatbot.page').then(m => m.ChatbotPage),
+    canActivate: [AuthGuard]  // si deseas protegerlo
   },
   {
     path: 'ayudabp',

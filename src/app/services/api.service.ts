@@ -40,11 +40,6 @@ export class ApiService {
     return this.http.delete<void>(`${API_URL}/donantes/${id}/`);
   }
 
-  // GET /donaciones/:donanteId - Obtener historial de donaciones
-  getHistorialDonaciones(donanteId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/donaciones/${donanteId}/`);
-  }
-
   // POST /donaciones - Registrar nueva donación
   registrarDonacion(donacion: any): Observable<any> {
     return this.http.post<any>(`${API_URL}/donaciones/`, donacion);
@@ -108,6 +103,30 @@ export class ApiService {
     });
     return this.http.put(`${API_URL}/profile/`, data, { headers });
   }
+
+  registrarDonacionDesdeCentro(donacion: {
+    centro_id: number;
+    fecha_donacion: string;
+    cantidad_donacion: number;
+  }): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+  
+    return this.http.post(`${API_URL}/donaciones/registrar/`, donacion, { headers });
+  }
+  
+getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
+  const token = localStorage.getItem('authToken');
+  const headers = new HttpHeaders({
+    'Authorization': `Token ${token}`
+  });
+
+  return this.http.get<{ donaciones: any[] }>(`${API_URL}/donaciones/historial/`, { headers });
+}
+
   
   logout(): void {
     localStorage.removeItem('authToken');

@@ -1,3 +1,4 @@
+@use "sass:color";
 ion-content {
   --background: hsl(0, 76%, 43%);
   --overflow: hidden;  // Prevenir scroll en el contenido principal
@@ -293,7 +294,7 @@ ion-content {
       border-radius: 4px;
       
       &:hover {
-        background: darken(#DD4B4B, 10%);
+        background: color.adjust(#DD4B4B, $lightness: -10%);
       }
     }
 

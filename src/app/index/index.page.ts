@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { DonationCenter } from '../interfaces/donation-center.interface';
 import { UserService } from '../services/user.service';
 import { AlertController } from '@ionic/angular';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-index',
@@ -31,30 +32,46 @@ export class IndexPage implements OnInit, OnDestroy {
     private geocodingService: GeocodingService,
     private toastController: ToastController,
     private userService: UserService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private cdr: ChangeDetectorRef,
   ) {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
 
   ngOnInit() {
-    this.getUserId();
-    this.checkIfRepresentante();
-    this.loadCenters();
-    this.requestLocationPermission();
+    this.userService.getUserId().subscribe((id) => {
+      this.userId = id;
+  
+      this.checkIfRepresentante();  // <-- solo después de tener el ID
+      this.loadCenters();
+      this.requestLocationPermission();
+    });
   }
+  
 
   private getUserId() {
     this.userService.getUserId().subscribe((id) => {
       this.userId = id;
+      console.log('userId cargado:', this.userId);
+      this.checkIfRepresentante();  // <-- Ahora se llama después de obtener el userId
     });
   }
+    
 
   checkIfRepresentante() {
+    console.log('Verificando si es representante:', this.userId);
     this.userService.isRepresentante(Number(this.userId)).subscribe({
-      next: (res) => this.isRepresentante = res,
-      error: () => this.isRepresentante = false
+      next: (res) => {
+        console.log('¿Es representante?', res);
+        this.isRepresentante = res;
+      },
+      error: (err) => {
+        console.warn('Error consultando representante:', err);
+        this.isRepresentante = false;
+      }
     });
   }
+  
 
   ngOnDestroy() {
     if (this.centersSubscription) {
