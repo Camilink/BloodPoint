@@ -37,6 +37,18 @@
         </ion-label>
       </ion-item>
 
+      <!-- Nuevo botón para escanear QR -->
+      <ion-item button (click)="escanearQR()">
+        <ion-thumbnail slot="start">
+          <div class="custom-thumbnail">
+            <i class="fa-solid fa-camera" style="color: #b93636;"></i>
+          </div>
+        </ion-thumbnail>
+        <ion-label>
+          <p><strong style="color: #b93636;">Escanear QR Donante</strong></p>
+        </ion-label>
+      </ion-item>
+
       <ion-item button [routerLink]="['/menu/editarperfil']">
         <ion-thumbnail slot="start">
           <div class="custom-thumbnail">

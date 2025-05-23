@@ -42,3 +42,45 @@
 :root {
   --ion-color-primary: #b93636;
 }
+
+.scanner-active {
+  --background: transparent !important;
+  background: transparent !important;
+}
+
+.scanner-active ion-content {
+  --background: transparent;
+}
+
+.scanner-modal {
+  --background: transparent;
+  --width: 100%;
+  --height: 100%;
+  
+  .modal-wrapper {
+    background: transparent;
+  }
+}
+
+body.scanner-active {
+  --background: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+
+  ion-app,
+  ion-content,
+  ion-modal {
+    background: transparent !important;
+  }
+
+  #qrcode-scanner-video {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 280px !important;
+    height: 280px !important;
+    object-fit: cover !important;
+    border-radius: 16px !important;
+  }
+}

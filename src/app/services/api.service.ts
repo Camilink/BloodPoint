@@ -132,5 +132,19 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user_id');
   }
+
+  guardarDonacion(donacionData: any) {
+    return this.http.post(`${API_URL}/donaciones`, donacionData);
+  }
+  
+  guardarDonacionQR(donacionData: any): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post(`${API_URL}/donaciones/registrar-qr/`, donacionData, { headers });
+  }
   
 }

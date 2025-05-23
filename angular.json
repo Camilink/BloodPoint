@@ -143,6 +143,18 @@
           }
         }
       }
+    },
+    "bloodpoint": {
+      "architect": {
+        "build": {
+          "options": {
+            "allowedCommonJsDependencies": [
+              "qrcode",
+              "mapbox-gl"
+            ]
+          }
+        }
+      }
     }
   },
   "cli": {

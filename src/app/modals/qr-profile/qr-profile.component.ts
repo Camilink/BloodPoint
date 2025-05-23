@@ -8,17 +8,6 @@ import { QRCodeComponent } from 'angularx-qrcode';
 @Component({
   selector: 'app-qr-profile',
   template: `
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Mi Perfil QR</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="dismiss()">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
     <ion-content class="ion-padding">
       <div class="ovalo ovalotop"></div>
       <div class="ovalo ovalomid"></div>
@@ -26,7 +15,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
       <ion-grid>
         <ion-row class="ion-justify-content-center">
           <ion-col size="12" class="ion-text-center">
-            <h2>Escanea mi código QR</h2>
+            <h1>Escanea mi código QR</h1>
             <div class="qr-container" *ngIf="qrData">
               <qrcode
                 [qrdata]="qrData"
@@ -37,10 +26,10 @@ import { QRCodeComponent } from 'angularx-qrcode';
             <ion-button 
               class="return-button" 
               (click)="dismiss()"
-              fill="outline"
+              fill="solid"
               color="danger"
               shape="round"
-              size="default">
+              size="large">
               <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
               Regresar a Perfil
             </ion-button>
@@ -53,58 +42,61 @@ import { QRCodeComponent } from 'angularx-qrcode';
     .qr-container {
       background: white;
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 15px;
       display: inline-block;
-      margin: 20px auto;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 30px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       position: relative;
       z-index: 1;
     }
-    h2 {
+    h1 {
       color: #b93636;
-      margin-bottom: 20px;
+      font-size: 2em;
+      margin: 40px 0;
       position: relative;
       z-index: 1;
     }
     .ovalo {
       position: fixed;
-      width: 300px;
-      height: 300px;
+      width: 400px;
+      height: 400px;
       border-radius: 50%;
-      background: rgba(185, 54, 54, 0.15);
+      background: rgba(255, 192, 192, 0.2);
       z-index: 0;
     }
     .ovalotop {
-      top: -100px;
-      right: -100px;
+      top: -200px;
+      right: -200px;
     }
     .ovalomid {
-      bottom: -100px;
-      left: -100px;
+      bottom: -200px;
+      left: -200px;
     }
     ion-content {
       --background: #ffffff;
     }
-    ion-toolbar {
-      --background: #ffffff;
-      --color: #b93636;
-    }
     .return-button {
-      margin-top: 20px;
-      --background: #ffffff;
-      --color: #b93636;
-      --border-color: #b93636;
-      --border-width: 1px;
-      --border-style: solid;
+      margin-top: 40px;
+      --background: #dd5757;
+      --color: #ffffff !important;
       --border-radius: 25px;
-      --padding-start: 25px;
-      --padding-end: 25px;
+      --padding-start: 30px;
+      --padding-end: 30px;
+      --padding-top: 20px;
+      --padding-bottom: 20px;
+      font-size: 16px;
       font-weight: 500;
+      text-transform: none;
+      color: #ffffff;
     }
 
+    ion-button::part(native) {
+      color: #ffffff;
+    }
+    
     ion-button ion-icon {
       margin-right: 8px;
-      color: #b93636;
+      font-size: 20px;
     }
   `],
   standalone: true,
