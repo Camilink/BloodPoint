@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { IonHeader } from "@ionic/angular/standalone";
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, ModalController } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+import { QrProfileComponent } from '../modals/qr-profile/qr-profile.component';
 
 @Component({
   selector: 'app-perfil',
@@ -15,7 +16,8 @@ export class PerfilPage implements OnInit {
 
   constructor(
     private router: Router, 
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalCtrl: ModalController
   ) {}
 
   ngOnInit() {
@@ -39,5 +41,13 @@ export class PerfilPage implements OnInit {
 
     // Redirigir al login
     this.router.navigate(['/login']);
+  }
+
+  async mostrarQR() {
+    const modal = await this.modalCtrl.create({
+      component: QrProfileComponent,
+      cssClass: 'qr-modal'
+    });
+    return await modal.present();
   }
 }
