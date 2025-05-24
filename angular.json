@@ -13,6 +13,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+            "qrcode",
+            "mapbox-gl"
+          ],
             "outputPath": "www",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -47,13 +51,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "500kb",
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "10kb",
+                  "maximumError": "20kb"
                 }
               ],
               "fileReplacements": [
@@ -139,18 +143,6 @@
             "lintFilePatterns": [
               "src/**/*.ts",
               "src/**/*.html"
-            ]
-          }
-        }
-      }
-    },
-    "bloodpoint": {
-      "architect": {
-        "build": {
-          "options": {
-            "allowedCommonJsDependencies": [
-              "qrcode",
-              "mapbox-gl"
             ]
           }
         }

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { BarcodeScanner, BarcodeFormat, Barcode } from '@capacitor-mlkit/barcode-scanning';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 
@@ -16,68 +16,25 @@ export class QrScannerComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     try {
-      await BarcodeScanner.checkPermission({ force: true });
-      
-      const body = document.querySelector('body');
-      if (body) {
-        body.classList.add('scanner-active');
-      }
+      const { barcodes } = await BarcodeScanner.scan();
 
-      // Preparar el preview de la cámara
-      const video = document.getElementById('video-preview') as HTMLVideoElement;
-      if (video) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-          });
-          video.srcObject = stream;
-          video.play();
-        } catch (err) {
-          console.error('Error accessing camera:', err);
-        }
+      if (barcodes.length > 0) {
+        const result = barcodes[0].rawValue;
+        await this.modalCtrl.dismiss(result);
+      } else {
+        await this.modalCtrl.dismiss();
       }
-      
-      const result = await BarcodeScanner.startScan();
-      if (result.hasContent) {
-        await this.modalCtrl.dismiss(result.content);
-      }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error('Scan error:', error);
       await this.modalCtrl.dismiss();
     }
   }
 
-  async dismiss() {
-    const body = document.querySelector('body');
-    if (body) {
-      body.classList.remove('scanner-active');
-    }
-    
-    // Detener la cámara
-    const video = document.getElementById('video-preview') as HTMLVideoElement;
-    if (video && video.srcObject) {
-      const stream = video.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-    }
-    
-    await BarcodeScanner.stopScan();
-    await this.modalCtrl.dismiss();
+  async ngOnDestroy() {
+    // El plugin de MLKit no necesita detener cámara como el anterior.
   }
 
-  async ngOnDestroy() {
-    const body = document.querySelector('body');
-    if (body) {
-      body.classList.remove('scanner-active');
-    }
-    
-    // Detener la cámara
-    const video = document.getElementById('video-preview') as HTMLVideoElement;
-    if (video && video.srcObject) {
-      const stream = video.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-    }
-    
-    await BarcodeScanner.stopScan();
-    await BarcodeScanner.showBackground();
+  async dismiss() {
+    await this.modalCtrl.dismiss();
   }
 }
