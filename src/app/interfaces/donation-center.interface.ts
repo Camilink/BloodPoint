@@ -10,9 +10,11 @@ export interface DonationCenter {
   telefono: string;
   fecha_creacion: string;
   created_at: string;
-  id_representante: number;
+  id_representante: number | null;
   distancia?: string;
-  coordenadas?: [number, number];
+  tipo: 'punto' | 'campana' | 'solicitud';
+  coordenadas?: [number, number] | null;
   horario_apertura?: string;  // Hacerlo opcional
   horario_cierre?: string;    // Hacerlo opcional
+  
 }

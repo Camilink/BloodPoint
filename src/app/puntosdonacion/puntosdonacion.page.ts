@@ -8,6 +8,9 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { DonationCenter } from '../interfaces/donation-center.interface';
 import { environment } from 'src/environments/environment';
+import { ApiService } from '../services/api.service';
+import { CampanaActiva } from '../interfaces/campana.interface';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-puntosdonacion',
@@ -17,26 +20,29 @@ import { environment } from 'src/environments/environment';
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class PuntosdonacionPage implements OnInit, OnDestroy {
-  searchTerm: string = '';
   showOnlyOpen: boolean = false;
   filteredCenters: DonationCenter[] = [];
   donationCenters: DonationCenter[] = [];
   selectedLocation: string = '';
-  selectedSchedule: string = '';
   private centersSubscription!: Subscription;
   private currentLocation: [number, number] | null = null;
+  selectedTipoLugar: string = 'todos';
+  isRepresentante: boolean = false;
 
   constructor(
     private donationService: DonationCentersService,
     private geocodingService: GeocodingService,
     private navCtrl: NavController,
     private router: Router,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private apiService: ApiService,
+    private userService: UserService
   ) {}
 
   ngOnInit() {
     this.loadCenters();
     this.requestLocationPermission();
+    this.checkIfRepresentante();
   }
 
   ngOnDestroy() {
@@ -45,16 +51,49 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
     }
   }
 
-  private loadCenters() {
+  private async loadCenters() {
     this.centersSubscription = this.donationService.getCenters().subscribe({
-      next: async (centers) => {
-        this.donationCenters = await Promise.all(
-          centers.map(center => this.transformCenter(center))
-        );
-        this.filteredCenters = [...this.donationCenters];
+      next: async (centros) => {
+        const transformedCenters = await Promise.all(centros.map(c => this.transformCenter(c)));
+  
+        this.apiService.getCampanasActivas().subscribe({
+          next: async (response: { data: CampanaActiva[] }) => {
+            const campanas = response.data;
+            const transformedCampanas = campanas.map((c: CampanaActiva) => {
+              const lat = parseFloat(c.latitud);
+              const lon = parseFloat(c.longitud);
+            
+              return {
+                id_centro: c.id_centro,
+                nombre_centro: c.centro + ' (Campaña)',
+                direccion_centro: 'Ubicación definida por campaña',
+                comuna: 'Sin comuna',
+                telefono: '',
+                fecha_creacion: c.fecha_campana,
+                created_at: c.fecha_campana,
+                id_representante: null,
+                tipo: 'campana' as 'campana',
+                distancia: 'Calculando...',
+                horario_apertura: c.apertura,
+                horario_cierre: c.cierre,
+                coordenadas: (!isNaN(lon) && !isNaN(lat)) ? [lon, lat] as [number, number] : null
+              };
+            });
+            
+            
+  
+            this.donationCenters = [...transformedCenters, ...transformedCampanas];
+            console.log('Donations loaded:', this.donationCenters);
+            this.filteredCenters = [...this.donationCenters];
+            console.log('Filtered centers:', this.filteredCenters);
+            if (this.currentLocation) {
+              await this.calculateRoutes();
+            }
+          },
+          error: err => console.error('Error cargando campañas activas:', err)
+        });
       },
       error: async (error) => {
-        console.error('Error loading centers:', error);
         const toast = await this.toastController.create({
           message: 'Error al cargar centros de donación',
           duration: 3000,
@@ -68,7 +107,20 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
 
   private async transformCenter(apiCenter: any): Promise<DonationCenter> {
     const coordenadas = await this.geocodingService.getCoordinates(apiCenter.direccion_centro);
-
+    const validas = Array.isArray(coordenadas) &&
+                    coordenadas.length === 2 &&
+                    coordenadas.every(n => typeof n === 'number' && !isNaN(n)) &&
+                    coordenadas[0] >= -180 && coordenadas[0] <= 180 &&
+                    coordenadas[1] >= -90 && coordenadas[1] <= 90;
+    
+    return {
+      ...apiCenter,
+      distancia: 'Calculando...',
+      coordenadas: validas ? coordenadas as [number, number] : null,
+      horario_apertura: apiCenter.horario_apertura || '',
+      horario_cierre: apiCenter.horario_cierre || ''
+    };
+    
     return {
       ...apiCenter,
       distancia: 'Calculando...',
@@ -107,10 +159,22 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
     }
 
     for (let center of this.donationCenters) {
-      if (!center.coordenadas) continue;
+      const coords = center.coordenadas;
+    
+      if (
+        !coords || 
+        coords.length !== 2 || 
+        isNaN(coords[0]) || isNaN(coords[1]) || 
+        Math.abs(coords[0]) > 180 || 
+        Math.abs(coords[1]) > 90
+      ) {
+        console.warn('Centro con coordenadas inválidas:', center);
+        continue;
+      }
+    
 
       try {
-        const response = await this.geocodingService.getRoute(this.currentLocation, center.coordenadas);
+        const response = await this.geocodingService.getRoute(this.currentLocation, center.coordenadas as [number, number]);
         center.distancia = response.distance >= 0 ? response.distance.toFixed(1) + " km" : "No disponible";
 
         // Validar que los horarios de apertura y cierre existen antes de procesarlos
@@ -129,15 +193,6 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
     this.filterCenters();
   }
 
-  searchCenters() {
-    const searchText = this.searchTerm.toLowerCase().trim();
-    this.filteredCenters = searchText 
-      ? this.donationCenters.filter(center => 
-          center.nombre_centro.toLowerCase().includes(searchText) ||
-          center.direccion_centro.toLowerCase().includes(searchText))
-      : [...this.donationCenters];
-  }
-
   filterByLocation() {
     this.filteredCenters = this.selectedLocation
       ? this.donationCenters.filter(c => c.direccion_centro === this.selectedLocation)
@@ -151,13 +206,15 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
 
   filterCenters() {
     this.filteredCenters = this.donationCenters.filter(center => {
-      return !this.selectedLocation || center.direccion_centro === this.selectedLocation;
+      const matchLocation = !this.selectedLocation || center.direccion_centro === this.selectedLocation;
+      const matchTipo = this.selectedTipoLugar === 'todos' || center.tipo === this.selectedTipoLugar;
+      return matchLocation && matchTipo;
     });
   }
+  
 
   resetFilters() {
     this.selectedLocation = '';
-    this.selectedSchedule = '';
     this.showOnlyOpen = false;
     this.filteredCenters = [...this.donationCenters];
   }
@@ -170,21 +227,19 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
     this.router.navigate(['/detalles', centerId]);
   }
 
-  // Agrega la variable para los horarios únicos
-  uniqueSchedules: string[] = ['Mañana', 'Tarde', 'Noche']; // Esto depende de cómo gestiones los horarios
-
-  filterBySchedule() {
-    this.filteredCenters = this.donationCenters.filter(center => {
-      // Aquí defines la lógica para filtrar los centros por horario
-      // Por ejemplo, si seleccionas "Mañana", filtra los que están abiertos en la mañana
-      if (this.selectedSchedule === 'Mañana') {
-        return center.horario_apertura && parseInt(center.horario_apertura.split(':')[0], 10) < 12;
-      } else if (this.selectedSchedule === 'Tarde') {
-        return center.horario_apertura && parseInt(center.horario_apertura.split(':')[0], 10) >= 12 && parseInt(center.horario_apertura.split(':')[0], 10) < 18;
-      } else if (this.selectedSchedule === 'Noche') {
-        return center.horario_apertura && parseInt(center.horario_apertura.split(':')[0], 10) >= 18;
+  private checkIfRepresentante() {
+    this.userService.getUserId().subscribe((userId) => {
+      if (userId) {
+        this.userService.isRepresentante(Number(userId)).subscribe({
+          next: (res) => {
+            this.isRepresentante = res;
+          },
+          error: (err) => {
+            console.warn('Error consultando representante:', err);
+            this.isRepresentante = false;
+          }
+        });
       }
-      return true; // Si no hay selección, devuelve todos los centros
     });
   }
 

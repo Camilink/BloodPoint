@@ -1,3 +1,7 @@
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>BloodPoint</ion-title>
@@ -26,13 +30,13 @@
 
       <!-- Botón para añadir nuevo centro, solo si el usuario es representante -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isRepresentante">
-      <ion-fab-button (click)="addNewDonationCenter()">
+      <ion-fab-button (click)="abrirFormularioCampana()"      >
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>
     </ion-fab>
   </div>
 
-  <ion-card class="donation-centers-card">
+  <!-- <ion-card class="donation-centers-card">
     <ion-card-header>
       <ion-card-title>
         <p style="color: #DD4B4B;">Puntos de Donación</p>
@@ -54,5 +58,5 @@
         </ion-list>
       </div>
     </ion-card-content>
-  </ion-card>
+  </ion-card> -->
 </ion-content>

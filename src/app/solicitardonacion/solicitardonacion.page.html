@@ -28,7 +28,7 @@
   <!-- Form Fields -->
   <div class="form-container">
     <ion-item>
-      <ion-select label="Tipo de sangre" interface="action-sheet">
+      <ion-select label="Tipo de sangre" interface="action-sheet" [(ngModel)]="formulario.tipo_sangre_sol" name="tipo_sangre_sol">
         <ion-select-option value="O -">O -</ion-select-option>
         <ion-select-option value="O +">O +</ion-select-option>
         <ion-select-option value="A -">A -</ion-select-option>
@@ -43,30 +43,115 @@
     <ion-item>
       <ion-input 
         label="Cantidad solicitada" 
-        type="number" 
-        [clearInput]="true"
-        inputmode="numeric" 
-        min="100" 
-        max="450" 
-        step="50">
+        type="number"
+        min="1"
+        max="100"
+        placeholder="Número de personas"
+        [(ngModel)]="formulario.cantidad_personas"
+        name="cantidad_personas">
       </ion-input>
     </ion-item>
 
     <ion-item>
-      <ion-select label="Centro de donacion" interface="action-sheet">
-        <ion-select-option value="1">Centro de Donacion Copiapo 123</ion-select-option>
-        <ion-select-option value="2">Centro de Donacion Copiapo 567</ion-select-option>
-        <ion-select-option value="3">Centro de Donacion Providencia 5632</ion-select-option>
-        <ion-select-option value="4">Centro de Donacion Providencia 2677</ion-select-option>
-        <ion-select-option value="5">Centro de Donacion La Moneda 3214</ion-select-option>
-        <ion-select-option value="6">Centro de Donacion Bicentenario 5325</ion-select-option>
+      <ion-select
+        label="Centro de donación"
+        interface="action-sheet"
+        [(ngModel)]="formulario.centro_donacion"
+        name="centro_donacion">
+        
+        <ion-select-option
+          *ngFor="let centro of centros"
+          [value]="centro.id_centro">
+          {{ centro.nombre_centro }} - {{ centro.comuna }}
+        </ion-select-option>
+        
       </ion-select>
     </ion-item>
+    
+
+        <!-- Fecha solicitud -->
+    <ion-item>
+      <ion-datetime 
+        presentation="date" 
+        label="Fecha de inicio" 
+        [min]="fechaMinima"
+        [(ngModel)]="formulario.fecha_solicitud"
+        name="fecha_solicitud">
+      </ion-datetime>
+    </ion-item>
+
+    <!-- Fecha término -->
+    <ion-item>
+      <ion-datetime 
+        presentation="date" 
+        label="Fecha de término"
+        [min]="fechaMinima"
+        [(ngModel)]="formulario.fecha_termino"
+        name="fecha_termino">
+      </ion-datetime>
+    </ion-item>
+
+    <!-- Horario de apertura -->
+    <ion-item>
+      <ion-datetime 
+        presentation="time" 
+        label="Hora de apertura"
+        [(ngModel)]="formulario.apertura"
+        name="apertura">
+      </ion-datetime>
+    </ion-item>
+
+    <!-- Horario de cierre -->
+    <ion-item>
+      <ion-datetime 
+        presentation="time" 
+        label="Hora de cierre"
+        [(ngModel)]="formulario.cierre"
+        name="cierre">
+      </ion-datetime>
+    </ion-item>
+
+    <!-- Comuna -->
+    <ion-item>
+      <ion-input 
+        label="Comuna" 
+        placeholder="Ingrese la comuna"
+        maxlength="50"
+        [(ngModel)]="formulario.comuna_solicitud" 
+        name="comuna_solicitud">
+      </ion-input>
+    </ion-item>
+
+    <!-- Ciudad -->
+    <ion-item>
+      <ion-input 
+        label="Ciudad" 
+        placeholder="Ingrese la ciudad"
+        maxlength="50"
+        [(ngModel)]="formulario.ciudad_solicitud" 
+        name="ciudad_solicitud">
+      </ion-input>
+    </ion-item>
+
+    <!-- Región -->
+    <ion-item>
+      <ion-input 
+        label="Región" 
+        placeholder="Ingrese la región"
+        maxlength="50"
+        [(ngModel)]="formulario.region_solicitud" 
+        name="region_solicitud">
+      </ion-input>
+    </ion-item>
+
 
     <ion-item>
-      <ion-textarea 
+      <ion-textarea
         label="Información adicional"
-        placeholder="Escriba aquí información adicional..."
+        placeholder="Describa la situación médica o motivo de la solicitud (máximo 500 caracteres)..."
+        maxlength="500"
+        [(ngModel)]="formulario.descripcion_solicitud"
+        name="descripcion_solicitud"
         [autoGrow]="true"
         rows="4">
       </ion-textarea>
@@ -74,7 +159,7 @@
   </div>
 
   <!-- Submit Button -->
-  <ion-button expand="block" class="submit-button">
+  <ion-button expand="block" class="submit-button" (click)="publicarSolicitud()">
     Publicar
-  </ion-button>
+  </ion-button>  
 </ion-content>

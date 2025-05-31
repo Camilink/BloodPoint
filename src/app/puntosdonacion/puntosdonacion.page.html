@@ -8,9 +8,9 @@
 <ion-content [fullscreen]="true">
   <!-- Fixed Header Section -->
   <div class="fixed-header">
-    <!-- Buscador -->
-    <div class="center-wrapper">
-      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="searchCenters()" show-clear-button="focus" animated="true" placeholder="Buscar..."></ion-searchbar>
+    <!-- Título principal -->
+    <div class="title-section">
+      <h1>Donde donar</h1>
     </div>
 
     <!-- Ubicación-->
@@ -31,16 +31,13 @@
           </ion-item>
         </ion-col>
         <ion-col>
-          <!-- Horario -->
+          <!-- Filtro por tipo de lugar (movido aquí) -->
           <ion-item class="select-item">
-            <ion-select [(ngModel)]="selectedSchedule" 
-                       (ionChange)="filterBySchedule()"
-                       placeholder="Horario" 
-                       interface="popover"
-                       [disabled]="!selectedLocation">
-              <ion-select-option value="morning">Mañana</ion-select-option>
-              <ion-select-option value="afternoon">Tarde</ion-select-option>
-              <ion-select-option value="evening">Noche</ion-select-option>
+            <ion-select [(ngModel)]="selectedTipoLugar" (ionChange)="filterCenters()" placeholder="Tipo de lugar">
+              <ion-select-option value="todos">Todos</ion-select-option>
+              <ion-select-option value="punto">Punto de Donación</ion-select-option>
+              <ion-select-option value="campana">Campaña</ion-select-option>
+              <ion-select-option value="solicitud">Solicitud</ion-select-option>
             </ion-select>
           </ion-item>
         </ion-col>
@@ -58,7 +55,7 @@
       </div>
       
       <div class="reset-button-wrapper">
-        <ion-button fill="clear" size="small" (click)="resetFilters()" [disabled]="!selectedLocation && !selectedSchedule && !showOnlyOpen">
+        <ion-button fill="clear" size="small" (click)="resetFilters()" [disabled]="!selectedLocation && !showOnlyOpen">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
           Limpiar filtros
         </ion-button>
@@ -91,7 +88,8 @@
           
           <ion-button expand="block" 
                       (click)="center.id_centro ? showDetails(center.id_centro) : null" 
-                      color="danger">
+                      color="danger"
+                      *ngIf="!isRepresentante">
             Ver Detalles
           </ion-button>
         </ion-label>

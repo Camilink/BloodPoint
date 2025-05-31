@@ -6,6 +6,7 @@ import { DonationCentersService } from '../services/donation-centers.service';
 import { GeocodingService } from '../services/geocoding.service';
 import { DonationCenter } from '../interfaces/donation-center.interface';
 import { ApiService } from '../services/api.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-detalles',
@@ -117,36 +118,86 @@ export class DetallesPage implements OnInit {
     this.navCtrl.back();
   }
 
-confirmarDonacion() {
-  const centroId = this.center?.id_centro;
-  if (!centroId) return;
-
-  const hoy = new Date().toISOString().split('T')[0]
-  const donacion = {
-    centro_id: centroId,
-    fecha_donacion: hoy,
-    cantidad_donacion: 1
-  };
-
-  this.apiService.registrarDonacionDesdeCentro(donacion).subscribe({
-    next: async () => {
+  async calcularRutaYMostrarEnMapa() {
+    console.log('🚀 Iniciando cálculo de ruta...');
+    if (!this.center) {
+      console.warn('❌ No hay centro seleccionado');
+      return;
+    }
+  
+    if (!this.currentLocation) {
+      console.warn('❌ No hay ubicación actual disponible');
       const toast = await this.toastController.create({
-        message: 'Donación registrada con éxito.',
-        duration: 2000,
-        color: 'success',
+        message: 'Para calcular la ruta, debes permitir el acceso a tu ubicación.',
+        duration: 2500,
+        color: 'warning',
       });
-      toast.present();
-    },
-    error: async (error) => {
-      console.error('Error al registrar donación:', error);
+      await toast.present();
+      return;
+    }
+  
+    console.log('📍 Ubicación actual:', this.currentLocation);
+    console.log('🎯 Centro seleccionado:', this.center);
+  
+    if (!this.center.coordenadas || this.center.coordenadas.length !== 2) {
+      console.log('🔄 Obteniendo coordenadas del centro...');
+      this.center.coordenadas = await this.geocodingService.getCoordinates(this.center.direccion_centro);
+      console.log('📍 Coordenadas obtenidas:', this.center.coordenadas);
+    }
+
+    // Validar coordenadas
+    const [lng, lat] = this.center.coordenadas;
+    const dentroDeChile = lng >= -76 && lng <= -66 && lat >= -56 && lat <= -17;
+    
+    if (!dentroDeChile) {
+      console.warn('❌ Coordenadas fuera de Chile:', this.center.coordenadas);
       const toast = await this.toastController.create({
-        message: 'No se pudo registrar la donación.',
-        duration: 2000,
+        message: 'Las coordenadas del centro están fuera de Chile. Por favor, verifica la dirección.',
+        duration: 3000,
+        color: 'warning',
+      });
+      await toast.present();
+      return;
+    }
+
+    try {
+      // Calcular la ruta usando el mismo método que en index
+      const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${this.currentLocation[0]},${this.currentLocation[1]};${this.center.coordenadas[0]},${this.center.coordenadas[1]}?geometries=geojson&access_token=${environment.mapbox.accessToken}`;
+      console.log('🔄 Obteniendo ruta desde Mapbox...');
+      
+      const response = await fetch(routeUrl);
+      const data = await response.json();
+      
+      if (!data.routes.length) {
+        throw new Error('No se encontró una ruta.');
+      }
+
+      const ruta = {
+        destino: this.center.coordenadas,
+        nombreCentro: this.center.nombre_centro,
+        geometry: data.routes[0].geometry,
+        distance: data.routes[0].distance / 1000 // Convertir metros a kilómetros
+      };
+      console.log('🗺️ Ruta a guardar:', ruta);
+
+      localStorage.setItem('ruta_actual', JSON.stringify(ruta));
+      console.log('💾 Ruta guardada en localStorage');
+      
+      // Verificar que se guardó correctamente
+      const rutaGuardada = localStorage.getItem('ruta_actual');
+      console.log('📝 Ruta guardada en localStorage:', rutaGuardada);
+      
+      this.navCtrl.navigateForward(['/menu/index'], { queryParams: { ruta: true } });
+      console.log('➡️ Navegando a index con parámetro ruta=true');
+    } catch (error) {
+      console.error('❌ Error al calcular o guardar la ruta:', error);
+      const toast = await this.toastController.create({
+        message: 'Error al calcular la ruta. Por favor, intenta nuevamente.',
+        duration: 3000,
         color: 'danger',
       });
-      toast.present();
+      await toast.present();
     }
-  });
-}
+  }  
 
 }

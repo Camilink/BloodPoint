@@ -10,6 +10,8 @@ import { DonationCenter } from '../interfaces/donation-center.interface';
 import { UserService } from '../services/user.service';
 import { AlertController } from '@ionic/angular';
 import { ChangeDetectorRef } from '@angular/core';
+import { ApiService } from '../services/api.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-index',
@@ -26,6 +28,8 @@ export class IndexPage implements OnInit, OnDestroy {
   private map!: mapboxgl.Map;
   private currentLocation: [number, number] | null = null;
   userId: number = 0;
+  shouldDrawRoute = false;
+
 
   constructor(
     private donationService: DonationCentersService,
@@ -34,19 +38,40 @@ export class IndexPage implements OnInit, OnDestroy {
     private userService: UserService,
     private alertController: AlertController,
     private cdr: ChangeDetectorRef,
+    private apiService: ApiService,
+    private route: ActivatedRoute
   ) {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
 
   ngOnInit() {
+    console.log('🏁 Iniciando IndexPage');
+    
+    // Primero verificar si hay parámetros de ruta
+    this.route.queryParams.subscribe(params => {
+      console.log('🔍 Parámetros de ruta recibidos:', params);
+      if (params['ruta']) {
+        console.log('✅ Parámetro ruta=true detectado');
+        this.shouldDrawRoute = true;
+        
+        // Si ya tenemos el mapa y centros cargados, ejecutar inmediatamente
+        if (this.map && this.donationCenters.length > 0) {
+          console.log('🚀 Mapa y centros ya están listos, ejecutando verificación inmediatamente');
+          setTimeout(() => {
+            this.esperarYVerificarRutaGuardada();
+          }, 500);
+        }
+      }
+    });
+
     this.userService.getUserId().subscribe((id) => {
       this.userId = id;
-  
-      this.checkIfRepresentante();  // <-- solo después de tener el ID
-      this.loadCenters();
+      this.checkIfRepresentante();
       this.requestLocationPermission();
+      this.loadCenters();
     });
   }
+  
   
 
   private getUserId() {
@@ -87,8 +112,23 @@ export class IndexPage implements OnInit, OnDestroy {
         );
         this.sortedCenters = [...this.donationCenters];
         this.initializeMap();
-        this.addDonationCenterMarkers(); // Llamada a la nueva función agregada
-      },
+        this.addDonationCenterMarkers();
+        this.sortedCenters = [...this.donationCenters];
+        this.initializeMap();
+        this.addDonationCenterMarkers();
+
+        setTimeout(() => {
+          console.log('⏰ Verificando si debe dibujar ruta...', 'shouldDrawRoute:', this.shouldDrawRoute);
+          if (this.shouldDrawRoute) {
+            console.log('✅ Iniciando esperarYVerificarRutaGuardada...');
+            this.esperarYVerificarRutaGuardada();
+          } else {
+            console.log('❌ No se debe dibujar ruta');
+          }
+        }, 1000);  // Espera un segundo para asegurarse que todo está listo
+
+        
+                      },
       error: async (error) => {
         console.error('Error cargando centros:', error);
         const toast = await this.toastController.create({
@@ -114,7 +154,8 @@ export class IndexPage implements OnInit, OnDestroy {
       created_at: apiCenter.created_at,
       id_representante: apiCenter.id_representante,
       distancia: 'Calculando...',
-      coordenadas
+      coordenadas,
+      tipo: 'punto',
     };
   }
 
@@ -169,8 +210,10 @@ export class IndexPage implements OnInit, OnDestroy {
       });
 
       if (this.currentLocation) {
-        await this.getRouteToCenter(center.coordenadas);
-      } else {
+        if (center.coordenadas && center.coordenadas.length === 2) {
+          await this.getRouteToCenter(center.coordenadas as [number, number]);
+        }
+              } else {
         console.warn("Ubicación del usuario no disponible para calcular la ruta.");
       }
     }
@@ -194,12 +237,12 @@ export class IndexPage implements OnInit, OnDestroy {
   }
 
   private displayRoute(routeGeometry: any) {
-    if (this.map.getLayer('route-line')) {
-      this.map.removeLayer('route-line');
-      this.map.removeSource('route');
+    if (this.map.getLayer('temp-route-line')) {
+      this.map.removeLayer('temp-route-line');
+      this.map.removeSource('temp-route');
     }
 
-    this.map.addSource('route', {
+    this.map.addSource('temp-route', {
       type: 'geojson',
       data: {
         type: 'Feature',
@@ -209,9 +252,9 @@ export class IndexPage implements OnInit, OnDestroy {
     });
 
     this.map.addLayer({
-      id: 'route-line',
+      id: 'temp-route-line',
       type: 'line',
-      source: 'route',
+      source: 'temp-route',
       layout: {
         'line-join': 'round',
         'line-cap': 'round'
@@ -357,5 +400,263 @@ export class IndexPage implements OnInit, OnDestroy {
         this.addMarkerToMap(center);
       }
     });
+  }
+
+  async abrirFormularioCampana() {
+    const centros = this.donationCenters;
+  
+    const alert = await this.alertController.create({
+      header: 'Crear Campaña',
+      inputs: [
+        {
+          name: 'fecha_campana',
+          type: 'date',
+          label: 'Fecha inicio'
+        },
+        {
+          name: 'fecha_termino',
+          type: 'date',
+          label: 'Fecha término'
+        },
+        {
+          name: 'apertura',
+          type: 'time',
+          label: 'Apertura'
+        },
+        {
+          name: 'cierre',
+          type: 'time',
+          label: 'Cierre'
+        },
+        {
+          name: 'meta',
+          type: 'text',
+          placeholder: 'Meta de donaciones'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Siguiente',
+          handler: async (data) => {
+            this.mostrarSelectorCentro(data); // paso siguiente
+            return false;
+          }
+        }
+      ]
+    });
+  
+    await alert.present();
+  }
+  
+  async mostrarSelectorCentro(dataForm1: any) {
+    const inputOptions = this.donationCenters.map(c => ({
+      label: c.nombre_centro,
+      value: c.id_centro
+    }));
+  
+    const alert = await this.alertController.create({
+      header: 'Selecciona el centro',
+      inputs: inputOptions.map(opt => ({
+        type: 'radio',
+        label: opt.label,
+        value: opt.value
+      })),
+      buttons: [
+        {
+          text: 'Usar ubicación del centro',
+          handler: async (idCentro) => {
+            const centro = this.donationCenters.find(c => c.id_centro === idCentro);
+            const nuevaCampana = {
+              ...dataForm1,
+              id_centro: idCentro,
+              latitud: String(centro?.coordenadas?.[1] || ''),
+              longitud: String(centro?.coordenadas?.[0] || ''),
+              id_representante: this.userId,
+              fecha_creacion: new Date().toISOString().split('T')[0],
+            };
+            await this.enviarCampana(nuevaCampana);
+          }
+        },
+        {
+          text: 'Seleccionar en el mapa',
+          handler: async (idCentro) => {
+            this.abrirSelectorMapa(dataForm1, idCentro); // lógica futura con click en mapa
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        }
+      ]
+    });
+  
+    await alert.present();
+  }
+  
+  async enviarCampana(campanaData: any) {
+    try {
+      await this.apiService.crearCampana(campanaData).toPromise();
+      this.showToast('Campaña creada con éxito', 'success');
+      // Opcional: volver a cargar campañas si están en el mapa
+    } catch (error) {
+      console.error('Error al crear campaña:', error);
+      this.showToast('Error al crear campaña', 'danger');
+    }
+  }
+  
+  abrirSelectorMapa(dataForm1: any, idCentro: number) {
+    const mensaje = 'Haz clic en el mapa para seleccionar una ubicación.';
+  
+    this.showToast(mensaje, 'primary');
+  
+    const clickHandler = async (e: mapboxgl.MapMouseEvent) => {
+      const lngLat = e.lngLat;
+      this.map.off('click', clickHandler); // eliminar listener después de un solo click
+  
+      const nuevaCampana = {
+        ...dataForm1,
+        id_centro: idCentro,
+        latitud: String(lngLat.lat),
+        longitud: String(lngLat.lng),
+        id_representante: this.userId,
+        fecha_creacion: new Date().toISOString().split('T')[0],
+      };
+  
+      await this.enviarCampana(nuevaCampana);
+    };
+  
+    this.map.once('click', clickHandler);
+  }
+  
+  private async verificarRutaGuardada() {
+    console.log('🔍 Verificando ruta guardada...');
+    const rutaStr = localStorage.getItem('ruta_actual');
+    console.log('📦 Contenido de localStorage:', rutaStr);
+  
+    if (!rutaStr || !this.map) {
+      console.warn('❌ No hay ruta guardada o el mapa no está inicializado');
+      return;
+    }
+  
+    // Esperar hasta que currentLocation esté disponible (máximo 2 segundos)
+    let retries = 0;
+    while (!this.currentLocation && retries < 20) {
+      console.log('⏳ Esperando ubicación actual...', retries);
+      await new Promise(res => setTimeout(res, 100));
+      retries++;
+    }
+
+    if (!this.currentLocation) {
+      console.warn('❌ No se pudo obtener la ubicación actual después de varios intentos');
+      return;
+    }
+  
+    try {
+      const ruta = JSON.parse(rutaStr);
+      console.log('📍 Ruta parseada:', ruta);
+      const { destino, nombreCentro, geometry, distance } = ruta;
+  
+      // Validar que destino es un arreglo con 2 números
+      if (!Array.isArray(destino) || destino.length !== 2) {
+        console.warn('🚫 Destino inválido (no es [lng, lat]):', destino);
+        localStorage.removeItem('ruta_actual');
+        return;
+      }
+  
+      const [lng, lat] = destino;
+      console.log('🎯 Coordenadas de destino:', { lng, lat });
+  
+      // Verificar si está dentro del rango de Chile
+      const dentroDeChile = lng >= -76 && lng <= -66 && lat >= -56 && lat <= -17;
+      if (!dentroDeChile) {
+        console.warn('❌ Coordenadas fuera de Chile:', destino);
+        this.showToast('Ubicación inválida. No se puede mostrar la ruta.', 'warning');
+        localStorage.removeItem('ruta_actual');
+        return;
+      }
+  
+      // Centrar mapa
+      console.log('🗺️ Centrando mapa en destino...');
+      this.map.flyTo({
+        center: destino as [number, number],
+        zoom: 15
+      });
+
+      // Dibujar la ruta en el mapa
+      if (geometry) {
+        console.log('🎨 Dibujando ruta en el mapa...');
+        // Remover ruta anterior si existe
+        if (this.map.getLayer('route')) {
+          console.log('🧹 Removiendo capa de ruta anterior...');
+          this.map.removeLayer('route');
+        }
+        if (this.map.getSource('route')) {
+          console.log('🧹 Removiendo fuente de ruta anterior...');
+          this.map.removeSource('route');
+        }
+
+        // Agregar nueva ruta
+        console.log('➕ Agregando nueva fuente de ruta...');
+        this.map.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: geometry
+          }
+        });
+
+        console.log('➕ Agregando nueva capa de ruta...');
+        this.map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#DD4B4B',
+            'line-width': 4
+          }
+        });
+
+        console.log('🧹 Limpiando localStorage...');
+        localStorage.removeItem('ruta_actual');
+        console.log('✅ Ruta dibujada exitosamente');
+      } else {
+        console.warn('⚠️ No se encontró geometría en la ruta guardada');
+        this.showToast('Error al mostrar la ruta', 'danger');
+      }
+  
+      // Mensaje visual
+      this.showToast(`Mostrando ruta hacia: ${nombreCentro} (${distance.toFixed(1)} km)`, 'primary');
+    } catch (err) {
+      console.error('❌ Error leyendo ruta almacenada:', err);
+      localStorage.removeItem('ruta_actual');
+    }
+  }
+  
+  
+  private async esperarYVerificarRutaGuardada() {
+    console.log('⏳ Esperando para verificar ruta guardada...');
+    let retries = 0;
+  
+    while ((!this.map || !this.currentLocation || this.donationCenters.length === 0) && retries < 30) {
+      await new Promise(res => setTimeout(res, 100));
+      retries++;
+    }
+  
+    if (!this.map || !this.currentLocation) {
+      console.warn("❌ No se puede mostrar la ruta: ubicación o mapa no disponibles");
+      return;
+    }
+  
+    console.log('✅ Condiciones listas, verificando ruta...');
+    this.verificarRutaGuardada();
   }
 }

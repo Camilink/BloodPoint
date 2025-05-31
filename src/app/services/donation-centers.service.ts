@@ -66,7 +66,9 @@ export class DonationCentersService {
       fecha_creacion: apiCenter.fecha_creacion,
       created_at: apiCenter.created_at,
       id_representante: apiCenter.id_representante,
-      distancia: 'No disponible'  // Esta propiedad puede actualizarse según el cálculo de distancia
+      distancia: 'No disponible',
+      tipo: apiCenter.tipo || 'punto' // ✅ Agrega esta línea
     };
+    
   }
 }

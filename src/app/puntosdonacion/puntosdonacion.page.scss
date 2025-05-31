@@ -1,6 +1,20 @@
 ion-content {
   --background: #ffffff;
   
+  .title-section {
+    text-align: center;
+    padding: 20px 16px;
+    background: #fff;
+    
+    h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #DD4B4B;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+  }
+  
   .center-wrapper {
     padding: 16px;
     background: #fff2f2;

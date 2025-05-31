@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { DonanteFormulario } from '../interfaces/donante-formulario';
 import { Donante } from '../interfaces/donante-backend';
 import { LoginCredentials, LoginResponse } from '../interfaces/login';
 import { HttpHeaders } from '@angular/common/http'; 
 const API_URL = 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com';
+import { CampanaActiva } from '../interfaces/campana.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -145,6 +146,73 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
     });
 
     return this.http.post(`${API_URL}/donaciones/registrar-qr/`, donacionData, { headers });
+  }
+
+  crearCampana(campanaData: any) {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    };
+    return this.http.post(`${API_URL}/campanas/crear/`, campanaData, { headers });
+  }
+  
+  getCampanasActivas(): Observable<{ data: CampanaActiva[] }> {
+    return this.http.get<{ data: CampanaActiva[] }>('https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/campanas/activas/');
+  }
+  
+  // Método para obtener centros de donación
+  getCentrosDonacion(): Observable<any> {
+    return this.http.get(`${API_URL}/centros/`).pipe(
+      catchError(error => {
+        console.error('Error al obtener centros:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  // Método de prueba para verificar endpoints disponibles
+  verificarEndpointsSolicitudes(): Observable<any> {
+    console.log('🔍 Verificando endpoints de solicitudes...');
+    
+    // Intentar el endpoint base de solicitudes
+    return this.http.get(`${API_URL}/solicitudes/`).pipe(
+      tap(response => {
+        console.log('✅ Endpoint /solicitudes/ disponible:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error en /solicitudes/:', error);
+        throw error;
+      })
+    );
+  }
+
+  crearSolicitudCampana(data: any): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    console.log('🔑 Token para solicitud:', token ? `${token.substring(0, 10)}...` : 'No disponible');
+    console.log('📤 URL de solicitud:', `${API_URL}/solicitudes/crear/`);
+    console.log('📋 Datos a enviar:', data);
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    console.log('📋 Headers enviados:', headers.keys());
+  
+    return this.http.post(`${API_URL}/solicitudes/crear/`, data, { headers }).pipe(
+      tap(response => {
+        console.log('✅ Respuesta exitosa del servidor:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error en crearSolicitudCampana:', error);
+        console.error('❌ Status del error:', error.status);
+        console.error('❌ Mensaje del error:', error.message);
+        console.error('❌ Error completo:', error.error);
+        throw error;
+      })
+    );
   }
   
 }
