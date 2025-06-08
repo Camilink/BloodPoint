@@ -107,7 +107,10 @@ export class LoginPage {
             localStorage.setItem('tipoUsuario', response.tipo_usuario);
 
             await this.showToast('Inicio de sesión exitoso', 'success');
-            await this.router.navigate(['/menu/index']);
+            
+            setTimeout(async () => {
+              await this.router.navigate(['/menu/index']);
+            }, 100);
           } else {
             await this.showToast('Credenciales inválidas', 'danger');
           }

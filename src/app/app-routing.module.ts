@@ -78,7 +78,11 @@ const routes: Routes = [
     path: 'registrarse',
     loadChildren: () => import('./registrarse/registrarse.module').then(m => m.RegistrarsePageModule),
     canActivate: [NoAuthGuard]
+  },  {
+    path: 'seleccionarlugardonacion',
+    loadChildren: () => import('./seleccionarlugardonacion/seleccionarlugardonacion.module').then( m => m.SeleccionarlugardonacionPageModule)
   },
+
 ];
 
 @NgModule({

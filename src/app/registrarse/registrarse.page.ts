@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
   imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
 export class RegistrarsePage implements OnInit {
-  formData: Partial<DonanteFormulario> & { password?: string, repetirPassword?: string, rut?: string, direccion?: string, comuna?: string } = {
+  formData: Partial<DonanteFormulario> & { password?: string, repetirPassword?: string, rut?: string, direccion?: string, comuna?: string, ocupacion?: string } = {
     rut: '',
     nombreCompleto: '',
     correoElectronico: '',
@@ -29,7 +29,8 @@ export class RegistrarsePage implements OnInit {
     password: '',
     repetirPassword: '',
     direccion: '',
-    comuna: ''
+    comuna: '',
+    ocupacion: ''
   };
 
   constructor(
@@ -133,6 +134,7 @@ export class RegistrarsePage implements OnInit {
       nuevo_donante: formValue.nuevoDonante,
       noti_emergencia: formValue.recibirNotificaciones,
       sexo: formValue.sexo,
+      ocupacion: formValue.ocupacion || "Sin especificar",
     };
 
     try {

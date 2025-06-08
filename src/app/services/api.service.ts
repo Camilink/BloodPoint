@@ -145,7 +145,7 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
       'Content-Type': 'application/json'
     });
 
-    return this.http.post(`${API_URL}/donaciones/registrar-qr/`, donacionData, { headers });
+    return this.http.post(`${API_URL}/donaciones/qr/`, donacionData, { headers });
   }
 
   crearCampana(campanaData: any) {
@@ -157,15 +157,43 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
     return this.http.post(`${API_URL}/campanas/crear/`, campanaData, { headers });
   }
   
-  getCampanasActivas(): Observable<{ data: CampanaActiva[] }> {
-    return this.http.get<{ data: CampanaActiva[] }>('https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/campanas/activas/');
-  }
-  
   // Método para obtener centros de donación
   getCentrosDonacion(): Observable<any> {
-    return this.http.get(`${API_URL}/centros/`).pipe(
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.error('No hay token de autenticación');
+      return throwError(() => new Error('No hay token de autenticación'));
+    }
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    
+    console.log('Enviando petición con token:', token.substring(0, 10) + '...');
+    return this.http.get(`${API_URL}/centros/`, { headers }).pipe(
+      tap(response => {
+        console.log('Respuesta completa:', response);
+        console.log('Estructura de la respuesta:', JSON.stringify(response, null, 2));
+      }),
       catchError(error => {
         console.error('Error al obtener centros:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  // Método para obtener campañas activas
+  getCampanasActivas(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    
+    return this.http.get(`${API_URL}/campanas/activas/`, { headers }).pipe(
+      catchError(error => {
+        console.error('Error al obtener campañas activas:', error);
         return throwError(() => error);
       })
     );

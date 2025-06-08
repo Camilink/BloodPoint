@@ -19,10 +19,12 @@ export class UserService {
 
   // Método para obtener el userId desde el almacenamiento local o donde lo tengas
   getUserId(): Observable<number> {
-    // Supón que el userId se guarda en el almacenamiento local (localStorage)
-    const userId = parseInt(localStorage.getItem('userId') || '0', 10);
+    const userId = localStorage.getItem('userId');
+    console.log('userId del localStorage:', userId);
+    const userIdNum = parseInt(userId || '0', 10);
+    console.log('userId convertido a número:', userIdNum);
     return new Observable(observer => {
-      observer.next(userId);
+      observer.next(userIdNum);
       observer.complete();
     });
   }

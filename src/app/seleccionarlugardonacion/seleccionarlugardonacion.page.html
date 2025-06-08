@@ -1,0 +1,48 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Seleccionar lugar de donación</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="loading" class="ion-padding">
+    <ion-spinner name="crescent"></ion-spinner> Cargando lugares...
+  </div>
+  <div *ngIf="!loading && isRepresentante">
+    <ion-list>
+      <ion-item *ngFor="let lugar of lugares" [class.selected]="esSeleccionado(lugar)">
+        <ion-label>
+          <h2>{{ lugar.nombre }}</h2>
+          <p>{{ lugar.direccion }}</p>
+          <p *ngIf="lugar.horario_apertura && lugar.horario_cierre">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ lugar.horario_apertura }} - {{ lugar.horario_cierre }}
+          </p>
+          <p><b>Tipo:</b> {{ lugar.tipo === 'centro' ? 'Centro' : 'Campaña' }}</p>
+        </ion-label>
+        <ion-button color="primary" (click)="seleccionarLugar(lugar)" [disabled]="esSeleccionado(lugar)">
+          {{ esSeleccionado(lugar) ? 'Seleccionado' : 'Seleccionar' }}
+        </ion-button>
+      </ion-item>
+    </ion-list>
+    <div *ngIf="seleccionado" class="ion-padding">
+      <ion-text color="success">
+        <h3>Lugar seleccionado:</h3>
+        <p>{{seleccionado.nombre}} ({{seleccionado.tipo}})</p>
+      </ion-text>
+    </div>
+  </div>
+  <div *ngIf="!loading && !isRepresentante" class="ion-padding">
+    <ion-text color="danger">
+      <h2>Acceso restringido</h2>
+      <p>Solo los representantes pueden seleccionar un lugar de donación.</p>
+    </ion-text>
+  </div>
+</ion-content>
+
+<style>
+.selected {
+  border-left: 5px solid #3880ff;
+  background: #f0f8ff;
+}
+</style>

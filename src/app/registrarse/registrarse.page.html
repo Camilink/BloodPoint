@@ -103,6 +103,19 @@
             required>
           </ion-input>
         </ion-item>
+        
+        <!-- Ocupación -->
+        <ion-item>
+          <ion-input 
+            name="ocupacion"
+            [(ngModel)]="formData.ocupacion"
+            labelPlacement="stacked" 
+            [clearInput]="true" 
+            label="Ocupación" 
+            placeholder="Ej: Estudiante, Profesional, etc."
+            required>
+          </ion-input>
+        </ion-item>
 
         <!-- Personal Info Section -->
         <ion-grid [fixed]="true">

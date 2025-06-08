@@ -121,6 +121,7 @@ export class QrProfileComponent implements OnInit {
   private loadUserData() {
     this.apiService.getPerfilUsuario().subscribe({
       next: (res) => {
+        // Solo los campos esenciales para el registro de donación
         const userData = {
           rut: res.data.rut,
           nombre_completo: res.data.nombre_completo,
@@ -130,10 +131,11 @@ export class QrProfileComponent implements OnInit {
           nacionalidad: res.data.nacionalidad,
           tipo_sangre: res.data.tipo_sangre
         };
+        
         this.qrData = JSON.stringify(userData);
       },
       error: (err) => {
-        console.error('Error al cargar perfil:', err);
+        console.error('Error al cargar perfil para QR:', err);
       }
     });
   }

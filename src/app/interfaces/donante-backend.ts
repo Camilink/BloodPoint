@@ -13,4 +13,5 @@ export interface Donante {
     dispo_dia_donacion: string;
     nuevo_donante: boolean;
     noti_emergencia: boolean;
+    ocupacion: string;
   }

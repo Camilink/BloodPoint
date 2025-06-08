@@ -26,7 +26,8 @@ export class EditarperfilPage implements OnInit {
     nacionalidad: '',
     tipo_sangre: '',
     noti_emergencia: false,
-    email: ''
+    email: '',
+    ocupacion: ''
   };
 
   constructor(
@@ -70,7 +71,8 @@ export class EditarperfilPage implements OnInit {
       comuna: this.form.comuna,
       fono: this.form.fono,
       noti_emergencia: this.form.noti_emergencia,
-      email: this.form.email
+      email: this.form.email,
+      ocupacion: this.form.ocupacion
     };
 
     this.apiService.actualizarPerfilUsuario(datosAEnviar).subscribe({

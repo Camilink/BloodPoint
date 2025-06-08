@@ -12,4 +12,5 @@ export interface DonanteFormulario {
     ultimaDonacion?: string;
     cantidadDonada?: number;
     logros?: string[];
+    ocupacion: string;
 }

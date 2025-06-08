@@ -15,6 +15,7 @@ import { ApiService } from '../services/api.service';
   imports: [IonicModule, RouterModule]
 })
 export class PerfilPage implements OnInit {
+  private debugMode = true; // Cambiar a false para deshabilitar debug
 
   constructor(
     private router: Router, 
@@ -66,29 +67,68 @@ export class PerfilPage implements OnInit {
     const { data } = await modal.onWillDismiss();
     
     if (data) {
+      await this.debugToast(`QR recibido: ${data.substring(0, 50)}...`);
+      
       try {
         const scannedData = JSON.parse(data);
+        await this.debugToast(`QR parseado: ${scannedData.rut || 'Sin RUT'}`);
         
-        const donacionData = {
-          ...scannedData,
-          rut_representante: localStorage.getItem('user_id'),
-          rol: 'representante',
-          fecha_escaneo: new Date().toISOString()
+        // Verificar que tenemos el lugar seleccionado
+        const lugarSeleccionado = localStorage.getItem('lugarDonacionSeleccionado');
+        
+        if (!lugarSeleccionado) {
+          this.presentToast('⚠️ Debe seleccionar un lugar de donación primero');
+          return;
+        }
+        
+        const lugar = JSON.parse(lugarSeleccionado);
+        await this.debugToast(`Lugar: ${lugar.nombre || 'Sin nombre'}`);
+        
+        // Datos para el endpoint /donaciones/qr/
+        const donacionData: any = {
+          rut: scannedData.rut,
+          centro_id: lugar.centro_id,
+          tipo_donacion: lugar.tipo === 'campana' ? 'campana' : 'punto'
         };
 
+        // Si es una campaña, agregar el ID de campaña
+        if (lugar.tipo === 'campana' && lugar.campana_id) {
+          donacionData.campana_id = lugar.campana_id;
+        }
+
+        await this.debugToast('Enviando al servidor...');
+
         this.apiService.guardarDonacionQR(donacionData).subscribe({
-          next: () => {
-            this.presentToast('Donación registrada exitosamente');
+          next: (response) => {
+            this.presentToast('✅ Donación registrada exitosamente');
+            // Limpiar lugar seleccionado después del éxito
+            localStorage.removeItem('lugarDonacionSeleccionado');
           },
           error: (error) => {
-            console.error('Error al guardar donación:', error);
-            this.presentToast('Error al registrar la donación');
+            this.debugToast(`Error ${error.status}: ${error.message}`);
+            
+            let errorMessage = 'Error al registrar la donación';
+            if (error.status === 400) {
+              errorMessage = 'Datos inválidos. Verifique la información.';
+            } else if (error.status === 401) {
+              errorMessage = 'No autorizado. Inicie sesión nuevamente.';
+            } else if (error.status === 403) {
+              errorMessage = 'Solo representantes pueden registrar donaciones por QR.';
+            } else if (error.status === 404) {
+              errorMessage = 'Donante o centro no encontrado.';
+            } else if (error.status === 500) {
+              errorMessage = 'Error del servidor. Intente más tarde.';
+            }
+            
+            this.presentToast(`❌ ${errorMessage}`);
           }
         });
       } catch (e) {
-        console.error('Error al procesar QR:', e);
-        this.presentToast('QR inválido');
+        await this.debugToast(`Error JSON: ${e}`);
+        this.presentToast('❌ QR inválido o mal formateado');
       }
+    } else {
+      this.presentToast('ℹ️ Escaneo cancelado');
     }
   }
 
@@ -99,5 +139,17 @@ export class PerfilPage implements OnInit {
       position: 'bottom'
     });
     await toast.present();
+  }
+
+  private async debugToast(message: string) {
+    if (this.debugMode) {
+      const toast = await this.toastController.create({
+        message: `DEBUG: ${message}`,
+        duration: 4000,
+        position: 'top',
+        color: 'warning'
+      });
+      await toast.present();
+    }
   }
 }
