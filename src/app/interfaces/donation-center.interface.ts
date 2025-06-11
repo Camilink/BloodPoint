@@ -16,5 +16,5 @@ export interface DonationCenter {
   coordenadas?: [number, number] | null;
   horario_apertura?: string;  // Hacerlo opcional
   horario_cierre?: string;    // Hacerlo opcional
-  
+  campanas?: any;
 }
