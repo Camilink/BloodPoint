@@ -4,7 +4,7 @@ import { UserService } from '../services/user.service';
 import { DonationCenter } from '../interfaces/donation-center.interface';
 import { CampanaActiva } from '../interfaces/campana.interface';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -20,11 +20,13 @@ export class SeleccionarlugardonacionPage implements OnInit {
   loading: boolean = true;
   lugares: any[] = [];
   seleccionado: any = null;
+campana: any;
 
   constructor(
     private api: ApiService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private toastController: ToastController
   ) {}
 
   ngOnInit() {
@@ -40,24 +42,35 @@ export class SeleccionarlugardonacionPage implements OnInit {
     });
   }
 
+  get campanasValidadas() {
+    return this.seleccionado?.campanas?.filter((c: { validada: Boolean; }) => c.validada) ?? [];
+  }
+
+  async validarCampana(campana_id: any) {
+    console.log(campana_id)
+    await this.api.validarCampana(campana_id).subscribe({
+      next: async (res) => {
+        await this.toastController.create({
+          message: 'campaña actualizada',
+          duration: 2000,
+          color: 'success',
+          position: 'bottom',
+          cssClass: 'custom-toast'
+        });
+      }
+    })
+  }
+
   cargarLugares() {
     this.loading = true;
     this.userService.getUserId().subscribe(userId => {
       console.log('ID del representante:', userId);
-      this.api.getCentrosDonacion().subscribe({
+      this.api.getCentrosDonacion("representante=true&campanas=true").subscribe({
         next: (res) => {
           let centros = res.data || res;
-          // Filtrar centros por el representante actual
-          centros = centros.filter((c: DonationCenter) => c.id_representante === userId);
-          console.log('Centros filtrados:', centros);
-          
           this.api.getCampanasActivas().subscribe({
             next: (campRes) => {
               let campanas = campRes.data || [];
-              // Filtrar campañas por los centros del representante
-              campanas = campanas.filter((c: CampanaActiva) => {
-                return centros.some((centro: DonationCenter) => centro.id_centro === c.id_centro);
-              });
               
               // Unificar formato para mostrar en la lista
               const lugares = [
@@ -67,7 +80,8 @@ export class SeleccionarlugardonacionPage implements OnInit {
                   nombre: c.nombre_centro,
                   direccion: c.direccion_centro,
                   horario_apertura: c.horario_apertura,
-                  horario_cierre: c.horario_cierre
+                  horario_cierre: c.horario_cierre,
+                  campanas: c.campanas
                 })),
                 ...campanas.map((c: CampanaActiva) => ({
                   tipo: 'campana',
@@ -93,11 +107,13 @@ export class SeleccionarlugardonacionPage implements OnInit {
   seleccionarLugar(lugar: any) {
     this.seleccionado = lugar;
     // Guardar solo los datos necesarios
+    console.log(lugar)
     const obj: any = {
       tipo: lugar.tipo,
       centro_id: lugar.centro_id,
       nombre: lugar.nombre,
-      direccion: lugar.direccion
+      direccion: lugar.direccion,
+      campanas: lugar.campanas
     };
     if (lugar.tipo === 'campana') {
       obj.campana_id = lugar.campana_id;
