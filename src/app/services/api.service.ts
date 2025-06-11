@@ -156,9 +156,18 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
     };
     return this.http.post(`${API_URL}/campanas/crear/`, campanaData, { headers });
   }
+
+  validarCampana(campana_id: any) {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    };
+    return this.http.put(`${API_URL}/campanas/${campana_id}/`,{}, { headers });
+  }
   
   // Método para obtener centros de donación
-  getCentrosDonacion(): Observable<any> {
+  getCentrosDonacion(filters: string = ''): Observable<any> {
     const token = localStorage.getItem('authToken');
     if (!token) {
       console.error('No hay token de autenticación');
@@ -171,10 +180,9 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
     });
     
     console.log('Enviando petición con token:', token.substring(0, 10) + '...');
-    return this.http.get(`${API_URL}/centros/`, { headers }).pipe(
+    return this.http.get(`${API_URL}/centros?${filters}`, { headers }).pipe(
       tap(response => {
         console.log('Respuesta completa:', response);
-        console.log('Estructura de la respuesta:', JSON.stringify(response, null, 2));
       }),
       catchError(error => {
         console.error('Error al obtener centros:', error);
