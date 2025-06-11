@@ -30,6 +30,25 @@
         <h3>Lugar seleccionado:</h3>
         <p>{{seleccionado.nombre}} ({{seleccionado.tipo}})</p>
       </ion-text>
+      <strong>Campañas validadas:</strong> <span> {{campanasValidadas.length}}</span>
+      <ul>
+        <li *ngFor="let campana of seleccionado.campanas" [ngClass]="campana.validada ? '' : 'hidden'">{{campana.nombre_campana}}</li>
+      </ul>
+      <br>
+      <strong>Campañas sin validar:</strong> <span> {{seleccionado.campanas.length - campanasValidadas.length}}</span>
+      <br>
+      <table *ngIf="campanasValidadas.length !== seleccionado.campanas.length" style="text-align: left;">
+        <tr>
+          <th>Nombre campaña</th>
+          <th>Validar</th>
+        </tr>
+        <tr *ngFor="let campana of seleccionado.campanas" [ngClass]="!campana.validada ? '' : 'hidden'">
+          <td>{{campana.nombre_campana}}</td>
+          <td>
+            <ion-button (click)="validarCampana(campana.id_campana)" color="success">Validar</ion-button>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
   <div *ngIf="!loading && !isRepresentante" class="ion-padding">
@@ -44,5 +63,8 @@
 .selected {
   border-left: 5px solid #3880ff;
   background: #f0f8ff;
+}
+.hidden {
+  display: none;
 }
 </style>
