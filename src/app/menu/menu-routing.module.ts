@@ -54,7 +54,7 @@ const routes: Routes = [
       },
       {
         path: 'chatbot',
-        loadChildren: () => import('../chatbot/chatbot.page').then( m => m.ChatbotPage)
+        loadComponent: () => import('../chatbot/chatbot.page').then( m => m.ChatbotPage)
       },
       {
         path: 'seleccionarlugardonacion',
