@@ -52,8 +52,14 @@
       </div>
     </div>
   </div>
+  <ion-spinner
+  *ngIf="isLoading"
+  name="crescent"
+  color="primary"
+  style="display: block; margin: 20px auto;">
+</ion-spinner>
   <ion-button expand="block" class="confirm-button" (click)="calcularRutaYMostrarEnMapa()">
-    CONFIRMAR DONACIÓN
+    generar ruta
   </ion-button>
   
 </ion-content>

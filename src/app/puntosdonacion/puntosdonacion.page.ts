@@ -224,8 +224,12 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
   }
 
   showDetails(centerId: number) {
+    const selectedCenter = this.donationCenters.find(c => c.id_centro === centerId);
+    if (selectedCenter) {
+      localStorage.setItem('ultimo_centro', JSON.stringify(selectedCenter)); // ← Guarda con distancia
+    }
     this.router.navigate(['/detalles', centerId]);
-  }
+  }  
 
   private checkIfRepresentante() {
     this.userService.getUserId().subscribe((userId) => {
