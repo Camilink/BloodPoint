@@ -29,7 +29,7 @@ export class ChatbotPage implements OnInit {
     this.messages.push({ text: userText, sender: 'user' });
     this.newMessage = '';
 
-    this.http.post<{ validacion: string; response: string }>('http://localhost:8000/ask/', {
+    this.http.post<{ validacion: string; response: string }>('https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/ask/', {
       prompt: userText
     }).subscribe({
       next: (res) => {
