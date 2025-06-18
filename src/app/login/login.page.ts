@@ -23,6 +23,10 @@ export class LoginPage {
     email: ''
   };
 
+  abrirRecuperarContrasena() {
+  window.open('https://bloodpoint-core-qa.herokuapp.com/password-reset/', '_blank');
+  }
+
   validarRut(rut: string): boolean {
     rut = rut.replace(/\./g, '').replace(/-/g, '');
     if (rut.length < 2) return false;

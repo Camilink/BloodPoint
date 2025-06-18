@@ -98,7 +98,7 @@
         <!-- Item Nav/Routerlink -->
         <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
           <ion-button [routerLink]="['/registrarse']" fill="clear">Registrarse</ion-button>
-          <ion-button fill="clear">Recuperar Contrasena</ion-button>
+          <ion-button fill="clear" (click)="abrirRecuperarContrasena()">Recuperar Contraseña</ion-button>
         </div>
       </form>
     </ion-card-content>
