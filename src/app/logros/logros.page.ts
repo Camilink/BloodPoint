@@ -1,15 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../services/api.service';
+import { CommonModule } from '@angular/common';
+
+interface Achievement {
+  name: string;
+  user_completed: boolean;
+  symbol: string;
+}
 
 @Component({
   selector: 'app-Logros',
   templateUrl: './Logros.page.html',
   styleUrls: ['./Logros.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule],
+  imports: [IonicModule, FormsModule, CommonModule],
 })
 export class LogrosPage implements OnInit {
+
+  achievements: Achievement[] = [];
 
   share() {
     if (navigator.share) {
@@ -26,9 +36,13 @@ export class LogrosPage implements OnInit {
     }
   }
 
-  constructor() { }
+  constructor(private apiService: ApiService) { }
 
   ngOnInit() {
+    this.apiService.getAchievements().subscribe(
+      data => this.achievements = data,
+      err  => console.error('Error al cargar logros', err)
+    );
   }
 
 }

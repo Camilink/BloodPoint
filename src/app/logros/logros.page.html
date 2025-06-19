@@ -23,60 +23,20 @@
 
   <!-- Achievements List -->
   <div class="achievements-list">
-    <!-- Achievement Item 1 -->
-    <div class="achievement-item">
-      <div class="status-circle">
-        <i class="fas fa-check"></i>
+    <ng-container *ngIf="achievements.length; else noLogros">
+      <div *ngFor="let logro of achievements" class="achievement-item" [ngClass]="{ 'locked': !logro.user_completed }">
+        <div class="status-circle">
+          <i class="fas" [ngClass]="logro.user_completed ? 'fa-check' : 'fa-lock'"></i>
+        </div>
+        <div class="achievement-content">
+          <i class="fa-solid" [ngClass]="logro.symbol"></i>
+          <span>{{ logro.name }}</span>
+        </div>
       </div>
-      <div class="achievement-content">
-        <i class="fa-solid fa-droplet"></i>
-        <span>Primera donacion</span>
-      </div>
-    </div>
-
-    <!-- Achievement Item 2 -->
-    <div class="achievement-item">
-      <div class="status-circle">
-        <i class="fas fa-check"></i>
-      </div>
-      <div class="achievement-content">
-        <i class="fa-solid fa-calendar-days"></i>
-        <span>Constancia</span>
-      </div>
-    </div>
-
-    <!-- Achievement Item 3 -->
-    <div class="achievement-item">
-      <div class="status-circle">
-        <i class="fas fa-check"></i>
-      </div>
-      <div class="achievement-content">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span>Respuesta urgente</span>
-      </div>
-    </div>
-
-    <!-- Achievement Item 4 -->
-    <div class="achievement-item locked">
-      <div class="status-circle">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div class="achievement-content">
-        <i class="fa-solid fa-people-group"></i>
-        <span>Donacion grupal</span>
-      </div>
-    </div>
-
-    <!-- Achievement Item 5 -->
-    <div class="achievement-item locked">
-      <div class="status-circle">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div class="achievement-content">
-        <i class="fa-solid fa-bullhorn"></i>
-        <span>Promotor bloodpoint</span>
-      </div>
-    </div>
+    </ng-container>
+    <ng-template #noLogros>
+      <p class="ion-text-center">Aún no tienes logros.</p>
+    </ng-template>
   </div>
 
   <!-- Share Button -->

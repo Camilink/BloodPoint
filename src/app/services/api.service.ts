@@ -250,5 +250,15 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
       })
     );
   }
-  
+  /**
+   * GET /archivements - Obtener logros del usuario autenticado
+   */
+  getAchievements(): Observable<any[]> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.get<any[]>(`${API_URL}/achievements/`, { headers });
+  }
 }
