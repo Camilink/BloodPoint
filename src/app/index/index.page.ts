@@ -12,6 +12,9 @@ import { AlertController } from '@ionic/angular';
 import { ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '../services/api.service';
 import { ActivatedRoute } from '@angular/router';
+import { ModalController } from '@ionic/angular';
+import { QrProfileComponent } from '../modals/qr-profile/qr-profile.component';
+import { QrScannerComponent } from '../modals/qr-scanner/qr-scanner.component';
 
 @Component({
   selector: 'app-index',
@@ -39,7 +42,8 @@ export class IndexPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private cdr: ChangeDetectorRef,
     private apiService: ApiService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private modalCtrl: ModalController,
   ) {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
@@ -659,4 +663,71 @@ export class IndexPage implements OnInit, OnDestroy {
     console.log('✅ Condiciones listas, verificando ruta...');
     this.verificarRutaGuardada();
   }
+  async mostrarQR() {
+    const modal = await this.modalCtrl.create({
+      component: QrProfileComponent,
+      cssClass: 'qr-modal'
+    });
+    return await modal.present();
+  }
+  
+  async escanearQR() {
+    const modal = await this.modalCtrl.create({
+      component: QrScannerComponent,
+      cssClass: 'scanner-modal',
+      backdropDismiss: false
+    });
+  
+    await modal.present();
+  
+    const { data } = await modal.onWillDismiss();
+  
+    if (data) {
+      await this.showToast(`QR recibido: ${data.substring(0, 50)}...`, 'warning');
+      try {
+        const scannedData = JSON.parse(data);
+        await this.showToast(`QR parseado: ${scannedData.rut || 'Sin RUT'}`, 'warning');
+  
+        const lugarSeleccionado = localStorage.getItem('lugarDonacionSeleccionado');
+  
+        if (!lugarSeleccionado) {
+          this.showToast('⚠️ Debe seleccionar un lugar de donación primero', 'warning');
+          return;
+        }
+  
+        const lugar = JSON.parse(lugarSeleccionado);
+        const donacionData: any = {
+          rut: scannedData.rut,
+          centro_id: lugar.centro_id,
+          tipo_donacion: lugar.tipo === 'campana' ? 'campana' : 'punto'
+        };
+  
+        if (lugar.tipo === 'campana' && lugar.campana_id) {
+          donacionData.campana_id = lugar.campana_id;
+        }
+  
+        this.apiService.guardarDonacionQR(donacionData).subscribe({
+          next: () => {
+            this.showToast('✅ Donación registrada exitosamente', 'success');
+            localStorage.removeItem('lugarDonacionSeleccionado');
+          },
+          error: (error) => {
+            let errorMessage = 'Error al registrar la donación';
+            if (error.status === 400) errorMessage = 'Datos inválidos. Verifique la información.';
+            else if (error.status === 401) errorMessage = 'No autorizado. Inicie sesión nuevamente.';
+            else if (error.status === 403) errorMessage = 'Solo representantes pueden registrar donaciones por QR.';
+            else if (error.status === 404) errorMessage = 'Donante o centro no encontrado.';
+            else if (error.status === 500) errorMessage = 'Error del servidor. Intente más tarde.';
+            this.showToast(`❌ ${errorMessage}`, 'danger');
+          }
+        });
+      } catch (e) {
+        this.showToast('❌ QR inválido o mal formateado', 'danger');
+      }
+    } else {
+      this.showToast('ℹ️ Escaneo cancelado', 'medium');
+    }
+  }
+  
+
 }

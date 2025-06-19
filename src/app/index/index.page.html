@@ -2,22 +2,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>BloodPoint</ion-title>
-  </ion-toolbar>
-</ion-header>
+
 
 <ion-content [fullscreen]="true">
   <!-- Fondos ovalados -->
   <div class="ovalo ovalotop"></div>
   <div class="ovalo ovalomid"></div>
-
+  <div class="blood-header">
+    <h1>BloodPoint</h1>
+  </div>
   <!-- Contenedor del mapa -->
   <div class="map-container">
     <div id="map"></div>
     
-    <!-- Notificación de sangre dinámica -->
+    <!-- Notificación de sangre dinámica 
     <div class="blood-notification">
       <div class="notification-content">
         <ion-icon name="water"></ion-icon>
@@ -26,7 +24,7 @@
           <p style="color: white; text-decoration: underline;">Ver más</p>
         </ion-button>
       </div>
-    </div>
+    </div>-->
 
       <!-- Botón para añadir nuevo centro, solo si el usuario es representante -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isRepresentante">
@@ -34,6 +32,17 @@
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>
     </ion-fab>
+  </div>
+  <div class="qr-button-container">
+    <ion-button expand="block" class="qr-button" (click)="mostrarQR()" *ngIf="!isRepresentante">
+      <i class="fa-solid fa-qrcode"></i>
+      <span>Ver Perfil QR</span>
+    </ion-button>
+  
+    <ion-button expand="block" class="qr-button" (click)="escanearQR()" *ngIf="isRepresentante">
+      <i class="fa-solid fa-camera"></i>
+      <span>Escanear QR Donante</span>
+    </ion-button>
   </div>
 
   <!-- <ion-card class="donation-centers-card">
@@ -58,5 +67,5 @@
         </ion-list>
       </div>
     </ion-card-content>
-  </ion-card> -->
+  </ion-card> -->  
 </ion-content>
