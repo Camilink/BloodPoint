@@ -39,14 +39,31 @@ export class DetallesPage implements OnInit {
       if (id) {
         const guardado = localStorage.getItem('ultimo_centro');
         if (guardado) {
+          try {
           const centroGuardado: DonationCenter = JSON.parse(guardado);
-          if (centroGuardado.id_centro === +id) {
+            // Usar el centro guardado si existe, sin importar si el ID coincide exactamente
+            // (para manejar campañas con IDs artificiales)
+            if (centroGuardado && (Math.abs(centroGuardado.id_centro || 0) === Math.abs(+id) || centroGuardado.id_centro === +id)) {
             console.log('✅ Usando centro guardado con distancia:', centroGuardado);
             this.center = centroGuardado;
             localStorage.removeItem('ultimo_centro');
             return;
           }
+            // Si existe localStorage pero no coincide ID, úsalo de todas formas para campañas
+            else if (centroGuardado && centroGuardado.tipo === 'campana') {
+              console.log('✅ Usando campaña guardada (ID diferente):', centroGuardado);
+              this.center = centroGuardado;
+              localStorage.removeItem('ultimo_centro');
+              return;
+            }
+          } catch (e) {
+            console.warn('Error parsing localStorage:', e);
+            localStorage.removeItem('ultimo_centro');
+          }
         }
+        
+        // Solo intentar petición HTTP para IDs positivos (centros reales)
+        if (+id > 0) {
         this.donationService.getCenterById(+id).subscribe({
           next: async (center) => {
             console.log("Centro recibido:", center);
@@ -83,6 +100,19 @@ export class DetallesPage implements OnInit {
             this.navCtrl.navigateBack('/menu/puntosdonacion');
           }
         });
+        } else {
+          // Para IDs negativos (campañas), mostrar mensaje si no hay localStorage
+          console.warn('No se encontró información para campaña con ID:', id);
+          this.toastController.create({
+            message: "No se pudo cargar la información de la campaña.",
+            duration: 3000,
+            position: "top",
+            color: "warning",
+          }).then(toast => {
+            toast.present();
+            this.navCtrl.navigateBack('/menu/puntosdonacion');
+          });
+        }
       }
     });
   }

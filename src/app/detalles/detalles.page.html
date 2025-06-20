@@ -1,7 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Detalles</ion-title>
-  </ion-toolbar>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
 
@@ -36,7 +34,7 @@
       </div>
     </div>
 
-    <div class="info-item">
+    <div class="info-item" *ngIf="center.tipo !== 'campana'">
       <i class="fa-solid fa-phone"></i>
       <div class="info-content">
         <span class="label">Teléfono:</span>

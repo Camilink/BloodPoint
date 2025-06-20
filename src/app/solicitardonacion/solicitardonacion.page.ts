@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../services/api.service';
+import { GeocodingService } from '../services/geocoding.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -24,12 +25,13 @@ export class SolicitardonacionPage {
     centro_donacion: '',
     fecha_solicitud: '',
     fecha_termino: '',
-    apertura: '08:00',
-    cierre: '18:00'
+    apertura: '',
+    cierre: ''
   };
 
   constructor(
     private api: ApiService,
+    private geocodingService: GeocodingService,
     private toastCtrl: ToastController
   ) {}
 
@@ -103,11 +105,22 @@ export class SolicitardonacionPage {
       // Validación básica del formulario
       if (!this.formulario.tipo_sangre_sol || !this.formulario.cantidad_personas || 
           !this.formulario.descripcion_solicitud || !this.formulario.centro_donacion ||
-          !this.formulario.fecha_solicitud || !this.formulario.fecha_termino ||
-          !this.formulario.comuna_solicitud || !this.formulario.ciudad_solicitud ||
-          !this.formulario.region_solicitud || !this.formulario.apertura || !this.formulario.cierre) {
+          !this.formulario.fecha_solicitud || !this.formulario.fecha_termino) {
         const toast = await this.toastCtrl.create({
           message: 'Por favor complete todos los campos requeridos',
+          duration: 3000,
+          color: 'warning'
+        });
+        toast.present();
+        return;
+      }
+
+      // Ya no validamos apertura/cierre porque el backend los obtiene automáticamente del centro
+
+      // Validar que se haya obtenido la ubicación del centro
+      if (!this.formulario.comuna_solicitud) {
+        const toast = await this.toastCtrl.create({
+          message: 'Error: No se pudo obtener la ubicación del centro seleccionado',
           duration: 3000,
           color: 'warning'
         });
@@ -127,12 +140,12 @@ export class SolicitardonacionPage {
         return;
       }
 
-      // Validar fechas
-      const fechaSolicitud = new Date(this.formulario.fecha_solicitud);
-      const fechaTermino = new Date(this.formulario.fecha_termino);
-      const fechaActual = new Date();
+      // Validar fechas - permitir crear campañas para hoy
+      const fechaSolicitudStr = this.formulario.fecha_solicitud; // "2024-12-28"
+      const fechaTerminoStr = this.formulario.fecha_termino;
+      const fechaActualStr = new Date().toISOString().split('T')[0]; // "2024-12-28"
       
-      if (fechaSolicitud < fechaActual) {
+      if (fechaSolicitudStr < fechaActualStr) {
         const toast = await this.toastCtrl.create({
           message: 'La fecha de inicio no puede ser anterior a hoy',
           duration: 3000,
@@ -142,7 +155,7 @@ export class SolicitardonacionPage {
         return;
       }
 
-      if (fechaTermino <= fechaSolicitud) {
+      if (fechaTerminoStr <= fechaSolicitudStr) {
         const toast = await this.toastCtrl.create({
           message: 'La fecha de término debe ser posterior a la fecha de inicio',
           duration: 3000,
@@ -165,12 +178,9 @@ export class SolicitardonacionPage {
         ciudad_solicitud: this.formulario.ciudad_solicitud.trim(),
         region_solicitud: this.formulario.region_solicitud.trim(),
         centro_donacion: parseInt(this.formulario.centro_donacion),
-        // Formatear fechas en formato YYYY-MM-DD
-        fecha_solicitud: fechaSolicitud.toISOString().split('T')[0],
-        fecha_termino: fechaTermino.toISOString().split('T')[0],
-        // Agregar campos obligatorios para la campaña
-        apertura: this.formulario.apertura,
-        cierre: this.formulario.cierre
+        // Usar fechas directamente desde el formulario (ya están en formato YYYY-MM-DD)
+        fecha_solicitud: fechaSolicitudStr,
+        fecha_termino: fechaTerminoStr
       };
       
       console.log('📤 Datos a enviar:', solicitudData);
@@ -192,8 +202,8 @@ export class SolicitardonacionPage {
         centro_donacion: '',
         fecha_solicitud: '',
         fecha_termino: '',
-        apertura: '08:00',
-        cierre: '18:00'
+        apertura: '',
+        cierre: ''
       };
 
       const toast = await this.toastCtrl.create({
@@ -246,5 +256,147 @@ export class SolicitardonacionPage {
   // Getter para la fecha mínima (hoy)
   get fechaMinima(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  // Función para actualizar ubicación cuando se selecciona un centro
+  async onCentroSeleccionado() {
+    const centroSeleccionado = this.centros.find(centro => 
+      centro.id_centro == this.formulario.centro_donacion
+    );
+    
+    if (centroSeleccionado) {
+      console.log('🏥 Centro seleccionado:', centroSeleccionado.nombre_centro);
+      console.log('📍 Dirección del centro:', centroSeleccionado.direccion_centro);
+      console.log('🏛️ Comuna en BD (IGNORAR):', centroSeleccionado.comuna);
+      
+      // IGNORAR la comuna de la BD y calcular la correcta basándose en la dirección
+      try {
+        // Obtener coordenadas de la dirección del centro
+        const coordenadas = await this.geocodingService.getCoordinates(centroSeleccionado.direccion_centro);
+        
+        if (coordenadas && coordenadas[0] !== 0 && coordenadas[1] !== 0) {
+          console.log('📍 Coordenadas obtenidas:', coordenadas);
+          
+          // Obtener la información real de ubicación basándose en las coordenadas
+          const locationInfo = await this.geocodingService.getReverseGeocode(coordenadas);
+          
+          if (locationInfo) {
+            console.log('✅ Ubicación real calculada:', locationInfo);
+            
+            // Usar la comuna REAL calculada, no la de la BD
+            this.formulario.comuna_solicitud = locationInfo.comuna || 'Comuna no identificada';
+            // Extraer la ciudad de la dirección del centro
+            this.formulario.ciudad_solicitud = this.extractCityFromAddress(centroSeleccionado.direccion_centro);
+            this.formulario.region_solicitud = locationInfo.region || 'Región Metropolitana';
+            
+            console.log('📍 Ubicación final actualizada:', {
+              comuna: this.formulario.comuna_solicitud,
+              ciudad: this.formulario.ciudad_solicitud,
+              region: this.formulario.region_solicitud
+            });
+          } else {
+            console.warn('⚠️ No se pudo obtener información de ubicación');
+            this.setDefaultLocation(centroSeleccionado);
+          }
+        } else {
+          console.warn('⚠️ Coordenadas inválidas obtenidas');
+          this.setDefaultLocation(centroSeleccionado);
+        }
+      } catch (error) {
+        console.error('❌ Error obteniendo ubicación:', error);
+        this.setDefaultLocation(centroSeleccionado);
+      }
+    }
+  }
+  
+  private setDefaultLocation(centro: any) {
+    console.log('🔄 Usando ubicación por defecto para:', centro.nombre_centro);
+    
+    // Extraer información básica de la dirección como fallback
+    if (centro.direccion_centro) {
+      const direccionParts = centro.direccion_centro.split(',');
+      
+      // Buscar patrones conocidos en la dirección
+      let comunaExtraida = 'Comuna no identificada';
+      let ciudadExtraida = 'Santiago';
+      let regionExtraida = 'Región Metropolitana';
+      
+      // Buscar comuna en la dirección
+      for (const part of direccionParts) {
+        const partTrimmed = part.trim().toLowerCase();
+        if (partTrimmed.includes('la reina')) {
+          comunaExtraida = 'La Reina';
+          break;
+        } else if (partTrimmed.includes('santiago')) {
+          comunaExtraida = 'Santiago';
+          break;
+        } else if (partTrimmed.includes('providencia')) {
+          comunaExtraida = 'Providencia';
+          break;
+        }
+        // Agregar más comunas según sea necesario
+      }
+      
+      this.formulario.comuna_solicitud = comunaExtraida;
+      this.formulario.ciudad_solicitud = this.extractCityFromAddress(centro.direccion_centro);
+      this.formulario.region_solicitud = regionExtraida;
+    } else {
+      // Si no hay dirección, usar valores por defecto
+      this.formulario.comuna_solicitud = 'Comuna no identificada';
+      this.formulario.ciudad_solicitud = 'Ciudad no identificada';
+      this.formulario.region_solicitud = 'Región no identificada';
+    }
+    
+    console.log('📍 Ubicación por defecto asignada:', {
+      comuna: this.formulario.comuna_solicitud,
+      ciudad: this.formulario.ciudad_solicitud,
+      region: this.formulario.region_solicitud
+    });
+  }
+
+  private extractCityFromAddress(direccion: string): string {
+    if (!direccion) return 'Ciudad no identificada';
+    
+    console.log('🔍 Extrayendo ciudad de la dirección:', direccion);
+    
+    // Dividir la dirección por comas
+    const parts = direccion.split(',').map(part => part.trim());
+    
+    // Buscar patrones conocidos de ciudades chilenas
+    const ciudadesChilenas = [
+      'Santiago', 'Valparaíso', 'Viña del Mar', 'Concepción', 'La Serena', 'Antofagasta',
+      'Temuco', 'Rancagua', 'Talca', 'Arica', 'Chillán', 'Iquique', 'Los Ángeles',
+      'Puerto Montt', 'Valdivia', 'Osorno', 'Quillota', 'Ovalle', 'Curicó', 'Linares'
+    ];
+    
+    // Buscar si alguna parte contiene una ciudad conocida
+    for (const part of parts) {
+      for (const ciudad of ciudadesChilenas) {
+        if (part.toLowerCase().includes(ciudad.toLowerCase())) {
+          console.log(`✅ Ciudad encontrada: ${ciudad} en "${part}"`);
+          return ciudad;
+        }
+      }
+    }
+    
+    // Si la dirección contiene "Región Metropolitana", asumir Santiago
+    if (direccion.toLowerCase().includes('región metropolitana') || 
+        direccion.toLowerCase().includes('region metropolitana')) {
+      console.log('✅ Región Metropolitana detectada → Santiago');
+      return 'Santiago';
+    }
+    
+    // Si no se encuentra una ciudad específica, usar la penúltima parte como posible ciudad
+    if (parts.length >= 2) {
+      const posibleCiudad = parts[parts.length - 2];
+      // Filtrar códigos postales y textos que no parecen ciudades
+      if (!/^\d+$/.test(posibleCiudad) && posibleCiudad.length > 2) {
+        console.log(`📍 Usando posible ciudad: ${posibleCiudad}`);
+        return posibleCiudad;
+      }
+    }
+    
+    console.log('⚠️ No se pudo determinar la ciudad, usando valor por defecto');
+    return 'Ciudad no identificada';
   }
 }

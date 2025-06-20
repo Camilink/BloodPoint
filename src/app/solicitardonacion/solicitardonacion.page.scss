@@ -157,3 +157,38 @@ ion-content {
     --box-shadow: none;
   }
 }
+
+// Estilos para la información automática del centro
+.centro-info {
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  ion-item {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    
+    ion-label {
+      h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--ion-color-dark);
+      }
+      
+      p {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        margin: 2px 0;
+        
+        small {
+          font-size: 11px;
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Donar</ion-title>
-  </ion-toolbar>
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
 
@@ -67,7 +65,8 @@
   <div class="scrollable-content">
     <ion-list>
       <ion-item *ngFor="let center of filteredCenters" class="center-item" 
-                (click)="center.id_centro ? showDetails(center.id_centro) : null">
+                (click)="showDetails(center.id_centro)"
+                button="true">
         <ion-label>
           <div class="center-header">
             <h2>{{center.nombre_centro}}</h2>
@@ -81,15 +80,14 @@
             <i class="fa-solid fa-location-dot"></i>
             {{center.comuna}}
           </p>
-          <p class="contact">
+          <p class="contact" *ngIf="center.tipo !== 'campana'">
             <i class="fa-solid fa-phone"></i>
             {{center.telefono}}
           </p>
           
           <ion-button expand="block" 
-                      (click)="center.id_centro ? showDetails(center.id_centro) : null" 
-                      color="danger"
-                      *ngIf="!isRepresentante">
+                      (click)="showDetails(center.id_centro)" 
+                      color="danger">
             Ver Detalles
           </ion-button>
         </ion-label>
