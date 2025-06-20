@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000',
+  apiUrl: 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
   mapbox: {
     accessToken: 'pk.eyJ1IjoiemljeXVhbiIsImEiOiJjbWEybHV6ZDkwZmp0MmtwcnRpZWdkOTV2In0.H-szkKo7J7lXsTQhSF4sRQ'
   },
