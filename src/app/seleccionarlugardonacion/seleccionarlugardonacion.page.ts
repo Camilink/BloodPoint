@@ -18,9 +18,12 @@ import { FormsModule } from '@angular/forms';
 export class SeleccionarlugardonacionPage implements OnInit {
   isRepresentante: boolean = false;
   loading: boolean = true;
-  lugares: any[] = [];
-  seleccionado: any = null;
-campana: any;
+  
+  // Solo necesitamos los centros del representante
+  centrosDelRepresentante: DonationCenter[] = [];
+  
+  representanteId: number = 0;
+  selectedCentro: DonationCenter | null = null;
 
   constructor(
     private api: ApiService,
@@ -31,97 +34,104 @@ campana: any;
 
   ngOnInit() {
     this.userService.getUserId().subscribe(userId => {
+      this.representanteId = Number(userId);
       this.userService.isRepresentante(userId).subscribe(isRep => {
         this.isRepresentante = isRep;
         if (!isRep) {
           this.router.navigate(['/menu/index']);
         } else {
-          this.cargarLugares();
+          this.cargarDatosDelRepresentante();
         }
       });
     });
   }
 
-  get campanasValidadas() {
-    return this.seleccionado?.campanas?.filter((c: { validada: Boolean; }) => c.validada) ?? [];
-  }
-
-  async validarCampana(campana_id: any) {
-    console.log(campana_id)
-    await this.api.validarCampana(campana_id).subscribe({
-      next: async (res) => {
-        await this.toastController.create({
-          message: 'campaña actualizada',
-          duration: 2000,
-          color: 'success',
-          position: 'bottom',
-          cssClass: 'custom-toast'
-        });
-      }
-    })
-  }
-
-  cargarLugares() {
+  cargarDatosDelRepresentante() {
     this.loading = true;
-    this.userService.getUserId().subscribe(userId => {
-      console.log('ID del representante:', userId);
-      this.api.getCentrosDonacion("representante=true&campanas=true").subscribe({
-        next: (res) => {
-          let centros = res.data || res;
-          this.api.getCampanasActivas().subscribe({
-            next: (campRes) => {
-              let campanas = campRes.data || [];
-              
-              // Unificar formato para mostrar en la lista
-              const lugares = [
-                ...centros.map((c: DonationCenter) => ({
-                  tipo: 'centro',
-                  centro_id: c.id_centro,
-                  nombre: c.nombre_centro,
-                  direccion: c.direccion_centro,
-                  horario_apertura: c.horario_apertura,
-                  horario_cierre: c.horario_cierre,
-                  campanas: c.campanas
-                })),
-                ...campanas.map((c: CampanaActiva) => ({
-                  tipo: 'campana',
-                  centro_id: c.id_centro,
-                  campana_id: c.id_campana,
-                  nombre: c.centro + ' (Campaña)',
-                  direccion: 'Ubicación definida por campaña',
-                  horario_apertura: c.apertura,
-                  horario_cierre: c.cierre
-                }))
-              ];
-              this.lugares = lugares;
-              this.loading = false;
-            },
-            error: () => { this.loading = false; }
-          });
-        },
-        error: () => { this.loading = false; }
-      });
+    
+    // ✅ LOGS PARA COMPARAR CON INDEX
+    console.log('🏢 [ADMIN] representanteId:', this.representanteId);
+    console.log('🏢 [ADMIN] URL completa:', `representante=${this.representanteId}&campanas=true`);
+    
+    // Cargar centros del representante específico con sus campañas
+    this.api.getCentrosDonacion(`representante=${this.representanteId}&campanas=true`).subscribe({
+      next: (res) => {
+        this.centrosDelRepresentante = res.data || res;
+        console.log('🏢 [ADMIN] Centros del representante RAW:', res);
+        console.log('🏢 [ADMIN] Centros del representante procesados:', this.centrosDelRepresentante);
+        console.log('🔢 [ADMIN] Cantidad de centros:', this.centrosDelRepresentante?.length || 0);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error cargando centros:', error);
+        this.loading = false;
+        this.showToast('Error cargando centros', 'danger');
+      }
     });
   }
 
-  seleccionarLugar(lugar: any) {
-    this.seleccionado = lugar;
-    // Guardar solo los datos necesarios
-    console.log(lugar)
-    const obj: any = {
-      tipo: lugar.tipo,
-      centro_id: lugar.centro_id,
-      nombre: lugar.nombre,
-      direccion: lugar.direccion,
-      campanas: lugar.campanas
-    };
-    if (lugar.tipo === 'campana') {
-      obj.campana_id = lugar.campana_id;
+  seleccionarCentro(centro: DonationCenter) {
+    // Si es el mismo centro que ya está seleccionado, lo deseleccionamos (colapsar)
+    if (this.selectedCentro?.id_centro === centro.id_centro) {
+      this.selectedCentro = null;
+    } else {
+      // Si es un centro diferente o no hay ninguno seleccionado, lo seleccionamos
+      this.selectedCentro = centro;
     }
-    localStorage.setItem('lugarDonacionSeleccionado', JSON.stringify(obj));
   }
 
-  esSeleccionado(lugar: any) {
-    return this.seleccionado && this.seleccionado.tipo === lugar.tipo && this.seleccionado.centro_id === lugar.centro_id && (lugar.tipo !== 'campana' || this.seleccionado.campana_id === lugar.campana_id);
+  get campanasValidadas() {
+    return this.selectedCentro?.campanas?.filter((c: any) => c.validada) ?? [];
+  }
+
+  get campanasNoValidadas() {
+    return this.selectedCentro?.campanas?.filter((c: any) => !c.validada) ?? [];
+  }
+
+  async validarCampana(campana_id: any) {
+    console.log('🔄 Validando campaña:', campana_id);
+    
+    this.api.validarCampana(campana_id).subscribe({
+      next: async (res) => {
+        console.log('✅ Campaña validada:', res);
+        
+        // Actualizar la campaña en la lista local
+        if (this.selectedCentro?.campanas) {
+          const campanaIndex = this.selectedCentro.campanas.findIndex((c: any) => c.id_campana === campana_id);
+          if (campanaIndex !== -1) {
+            this.selectedCentro.campanas[campanaIndex].validada = true;
+          }
+        }
+        
+        await this.showToast('✅ Campaña validada exitosamente', 'success');
+        
+        // Recargar datos para reflejar cambios
+        this.cargarDatosDelRepresentante();
+      },
+      error: async (error) => {
+        console.error('❌ Error validando campaña:', error);
+        await this.showToast('❌ Error al validar campaña', 'danger');
+      }
+    });
+  }
+
+  async deshabilitarCampana(campana_id: any) {
+    console.log('🚫 Deshabilitando campaña:', campana_id);
+    
+    // Aquí iría la lógica para deshabilitar una campaña
+    // this.api.deshabilitarCampana(campana_id).subscribe({...})
+    
+    await this.showToast('🚫 Funcionalidad de deshabilitar en desarrollo', 'warning');
+  }
+
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom',
+      cssClass: 'custom-toast'
+    });
+    await toast.present();
   }
 }

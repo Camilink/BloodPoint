@@ -51,8 +51,8 @@
           <i class="fa-solid fa-venus-mars" style="color: #b93636;"></i>
         </div>
       </ion-thumbnail>
-      <ion-label position="stacked">Sexo</ion-label>
-      <ion-text>{{ form.sexo === 'H' ? 'Hombre' : 'Mujer' }}</ion-text>
+      <ion-label position="stacked">Género biológico</ion-label>
+      <ion-text>{{ form.sexo === 'H' ? 'Masculino' : 'Femenino' }}</ion-text>
     </ion-item>
 
     <ion-item>
@@ -131,8 +131,16 @@
           <i class="fa-solid fa-briefcase" style="color: #b93636;"></i>
         </div>
       </ion-thumbnail>
-      <ion-label position="stacked">Ocupación</ion-label>
-      <ion-input [(ngModel)]="form.ocupacion" name="ocupacion"></ion-input>
+      <ion-select 
+        [(ngModel)]="form.ocupacion" 
+        name="ocupacion"
+        label="Ocupación"
+        labelPlacement="stacked">
+        <ion-select-option value="estudiante">Estudiante</ion-select-option>
+        <ion-select-option value="trabajador">Trabajador</ion-select-option>
+        <ion-select-option value="jubilado">Jubilado</ion-select-option>
+        <ion-select-option value="otro">Otro</ion-select-option>
+      </ion-select>
     </ion-item>
 
     <ion-item lines="none">

@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 })
 export class GeocodingService {
   private mapboxToken = environment.mapbox.accessToken;
-  
+
   // Diccionario de direcciones problemáticas conocidas con coordenadas correctas
   private knownAddresses: { [key: string]: [number, number] } = {
     'Psje. Fredy Alvarado 859 Of. 3037, La Reina, Región Metropolitana, 0190050': [-70.5195, -33.4414], // La Reina

@@ -104,7 +104,7 @@ ion-content {
 
 .blood-header {
   position: absolute;
-  top: 8px;
+  top: 3em;
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(221, 75, 75, 0.85);
@@ -388,37 +388,96 @@ ion-content {
   }
 }
 
+// Estilos para modales de alerta - Crear Campaña
+:host ::ng-deep ion-alert {
 .alert-wrapper {
-  --background: #DD4B4B !important;
+    --background: white !important;
   --max-width: 500px;
   --border-radius: 15px;
 
   .alert-head {
     padding-top: 20px;
+      background: white;
     
     .alert-title {
-      color: white !important;
-      font-size: 24px;
-      font-weight: 500;
+        color: #DD4B4B !important;
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
     }
   }
 
   .alert-input-group {
     padding: 0 20px;
+      background: white;
     
     .alert-input-wrapper {
-      margin: 10px 0;
+        margin: 12px 0;
       
       .alert-input {
-        color: white !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+          color: #333 !important;
+          background: #f8f9fa !important;
+          border: 1px solid #dee2e6 !important;
+          border-radius: 8px !important;
+          padding: 12px !important;
+          font-size: 16px;
         
         &::placeholder {
-          color: rgba(255, 255, 255, 0.7);
+            color: #6c757d !important;
         }
         
         &:focus {
-          border-bottom: 2px solid white !important;
+            border-color: #DD4B4B !important;
+            box-shadow: 0 0 0 2px rgba(221, 75, 75, 0.2) !important;
+          }
+
+          &[disabled] {
+            background: #e9ecef !important;
+            color: #6c757d !important;
+            font-weight: 600;
+            text-align: center;
+          }
+        }
+      }
+
+      // Estilos específicos para radio buttons
+      .alert-radio-group {
+        background: white;
+        margin-top: 16px;
+        
+        .alert-radio-button {
+          margin: 8px 0;
+          padding: 12px;
+          border: 1px solid #dee2e6;
+          border-radius: 8px;
+          background: #f8f9fa;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: #e9ecef;
+            border-color: #DD4B4B;
+          }
+          
+          &.alert-radio-button-checked {
+            background: rgba(221, 75, 75, 0.1) !important;
+            border-color: #DD4B4B !important;
+            
+            .alert-radio-label {
+              color: #DD4B4B !important;
+              font-weight: 600;
+            }
+          }
+          
+          .alert-radio-label {
+            color: #333 !important;
+            font-size: 15px;
+            line-height: 1.4;
+            padding-left: 8px;
+          }
+          
+          .alert-radio-icon {
+            color: #DD4B4B !important;
+            margin-right: 8px;
         }
       }
     }
@@ -426,26 +485,31 @@ ion-content {
 
   .alert-button-group {
     padding: 20px;
+      background: white;
     
     .alert-button {
-      color: white !important;
-      font-weight: 500;
-      
-      &.alert-button-confirm {
-        background-color: white !important;
         color: #DD4B4B !important;
+        font-weight: 500;
+        margin: 0 4px;
         border-radius: 8px;
+        min-height: 44px;
+        
+        &.alert-button-confirm {
+          background-color: #DD4B4B !important;
+          color: white !important;
         
         &:hover {
-          background-color: #f5f5f5 !important;
+            background-color: #c44242 !important;
         }
       }
       
       &.alert-button-cancel {
         background: transparent;
+          border: 1px solid #dee2e6;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.1);
+            background: #f8f9fa;
+          }
         }
       }
     }

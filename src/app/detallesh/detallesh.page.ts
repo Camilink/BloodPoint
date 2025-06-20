@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { DonacionHistorial } from '../interfaces/donacion-historial.interface';
 import { ApiService } from '../services/api.service';
 import { ToastController } from '@ionic/angular';
+import { Share } from '@capacitor/share';
 
 @Component({
   selector: 'app-detallesh',
@@ -146,15 +147,39 @@ export class DetalleshPage implements OnInit {
 #DonarSangre #BloodPoint #SalvarVidas`;
 
     try {
-      // Intentar usar la API nativa de compartir si está disponible
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Mi donación de sangre - BloodPoint',
-          text: mensaje,
-          url: window.location.origin
-        });
-      } else {
-        // Fallback: copiar al portapapeles
+      // Usar Capacitor Share para Android nativo
+      await Share.share({
+        title: 'Mi donación de sangre - BloodPoint',
+        text: mensaje,
+        url: window.location.origin,
+        dialogTitle: 'Compartir mi donación'
+      });
+
+      console.log('✅ Donación compartida exitosamente');
+      
+      // Mostrar toast de confirmación
+      const toast = await this.toastController.create({
+        message: '🎉 ¡Donación compartida exitosamente!',
+        duration: 2000,
+        color: 'success',
+        position: 'bottom'
+      });
+      await toast.present();
+
+      // Registrar el compartir para gamificación
+      this.registrarCompartir();
+
+    } catch (error: any) {
+      console.error('❌ Error al compartir:', error);
+      
+      // Si el usuario canceló, no mostrar error
+      if (error?.message?.includes('cancelled') || error?.message?.includes('canceled')) {
+        console.log('📋 Usuario canceló el compartir');
+        return;
+      }
+      
+      // Fallback: copiar al portapapeles
+      try {
         await navigator.clipboard.writeText(mensaje);
         
         const toast = await this.toastController.create({
@@ -163,22 +188,18 @@ export class DetalleshPage implements OnInit {
           color: 'success',
           position: 'bottom'
         });
-        toast.present();
+        await toast.present();
+      } catch (clipboardError) {
+        console.error('❌ Error al copiar al portapapeles:', clipboardError);
+        
+        const toast = await this.toastController.create({
+          message: 'Error al compartir. Inténtalo de nuevo.',
+          duration: 2000,
+          color: 'danger',
+          position: 'bottom'
+        });
+        await toast.present();
       }
-
-      // Registrar el compartir para gamificación
-      this.registrarCompartir();
-
-    } catch (error) {
-      console.error('Error al compartir:', error);
-      
-      const toast = await this.toastController.create({
-        message: 'Error al compartir. Inténtalo de nuevo.',
-        duration: 2000,
-        color: 'danger',
-        position: 'bottom'
-      });
-      toast.present();
     }
   }
 

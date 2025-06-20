@@ -1,3 +1,8 @@
+// Fix content spacing - responsive margin
+ion-content {
+  --padding-top: 8vh;
+}
+
 .center-label {
     display: flex;
     flex-direction: column;
@@ -127,4 +132,8 @@
       background-color: #00C851;
     }
   }
+
+.custom-thumbnail {
+  // ... existing code ...
+}
 

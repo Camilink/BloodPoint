@@ -120,7 +120,7 @@ export class PuntosdonacionPage implements OnInit, OnDestroy {
                 nombreOptimizado = `🩸 ${c.tipo_sangre_sol} - ${centro} - ${cantidad} personas`;
                 console.log(`✅ Nombre optimizado para solicitud: ${nombreOptimizado}`);
               }
-              
+            
               const processedCampana = {
                 id_centro: c.id_centro || -(index + 1), // ID único negativo para campañas sin centro
                 nombre_centro: nombreOptimizado, // ✅ USAR NOMBRE OPTIMIZADO CON TIPO DE SANGRE

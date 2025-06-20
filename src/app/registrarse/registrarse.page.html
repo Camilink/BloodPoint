@@ -104,15 +104,17 @@
         
         <!-- Ocupación -->
         <ion-item>
-          <ion-input 
+          <ion-select 
             name="ocupacion"
             [(ngModel)]="formData.ocupacion"
-            labelPlacement="stacked" 
-            [clearInput]="true" 
-            label="Ocupación" 
-            placeholder="Ej: Estudiante, Profesional, etc."
+            label="Ocupación"
+            placeholder="Selecciona tu ocupación"
             required>
-          </ion-input>
+            <ion-select-option value="estudiante">Estudiante</ion-select-option>
+            <ion-select-option value="trabajador">Trabajador</ion-select-option>
+            <ion-select-option value="jubilado">Jubilado</ion-select-option>
+            <ion-select-option value="otro">Otro</ion-select-option>
+          </ion-select>
         </ion-item>
 
         <!-- Personal Info Section -->
@@ -123,10 +125,10 @@
                 <ion-select 
                   name="sexo"
                   [(ngModel)]="formData.sexo"
-                  label="Sexo Biológico"
+                  label="Género Biológico"
                   required>
-                  <ion-select-option value="H">Hombre</ion-select-option>
-                  <ion-select-option value="M">Mujer</ion-select-option>
+                  <ion-select-option value="H">Masculino</ion-select-option>
+                  <ion-select-option value="M">Femenino</ion-select-option>
                 </ion-select>
               </ion-item>
             </ion-col>

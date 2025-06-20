@@ -1,3 +1,8 @@
+// Fix content spacing - responsive margin
+ion-content {
+  --padding-top: 8vh;
+}
+
 .custom-thumbnail {
     width: 60px; // Tamaño estándar de ion-thumbnail
     height: 60px;
@@ -37,25 +42,7 @@ ion-content {
     z-index: -2;
   }
 
-  .header-section {
-    padding: 20px 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
 
-    .back-button {
-      color: white;
-      font-size: 24px;
-    }
-
-    h1 {
-      color: white;
-      font-size: 28px;
-      margin: 0;
-    }
-  }
 
   .details-card {
     background: rgba(255, 255, 255, 0.9);

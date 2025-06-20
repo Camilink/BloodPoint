@@ -49,6 +49,7 @@ export class IndexPage implements OnInit, OnDestroy {
   }
 
   campanasDisponibles: any[] = [];
+  centrosDisponibles: any[] = [];
 
   ngOnInit() {
     console.log('🏁 Iniciando IndexPage');
@@ -647,94 +648,73 @@ export class IndexPage implements OnInit, OnDestroy {
     this.campanaDatos = {};
     this.ubicacionSeleccionada = null;
     
-    // Obtener centros del representante
-    this.apiService.getCentrosDonacion("representante=true").subscribe({
+    // Obtener centros del representante específico
+    this.apiService.getCentrosDonacion(`representante=${this.userId}&campanas=true`).subscribe({
       next: async (res) => {
         const centrosDelRepresentante = res.data || res;
-        console.log('🏢 Centros del representante:', centrosDelRepresentante);
         
-                 // Crear opciones para el selector de centro
-         const centroOptions: any[] = [];
-         if (centrosDelRepresentante && centrosDelRepresentante.length > 0) {
-           centrosDelRepresentante.forEach((centro: any) => {
-             const esCentroSeleccionado = this.ubicacionSeleccionada?.tipo === 'centro' && 
-                                        this.ubicacionSeleccionada?.descripcion === centro.nombre_centro;
-             const labelCentro = esCentroSeleccionado ? 
-               `✅ ${centro.nombre_centro} (seleccionado)` : 
-               centro.nombre_centro;
-               
-             centroOptions.push({
-               type: 'radio' as const,
-               label: labelCentro,
-               value: `centro_${centro.id_centro}`,
-               checked: esCentroSeleccionado,
-               handler: () => {
-                 this.ubicacionSeleccionada = {
-                   lat: centro.latitud || -33.4489,
-                   lng: centro.longitud || -70.6693,
-                   tipo: 'centro',
-                   descripcion: centro.nombre_centro
-                 };
-               }
-             });
-           });
-         }
-         
-         // Agregar opción de mapa
-         let mapaLabelInicial = '📍 Seleccionar ubicación en el mapa';
-         if (this.ubicacionSeleccionada?.tipo === 'mapa') {
-           mapaLabelInicial = `✅ Ubicación en mapa: ${this.ubicacionSeleccionada.lat.toFixed(6)}, ${this.ubicacionSeleccionada.lng.toFixed(6)}`;
-         }
-         
-         centroOptions.push({
-           type: 'radio' as const,
-           label: mapaLabelInicial,
-           value: 'mapa',
-           checked: this.ubicacionSeleccionada?.tipo === 'mapa'
-         });
-  
-    const alert = await this.alertController.create({
-      header: 'Crear Campaña',
-      inputs: [
+        // ✅ AGREGAR ESTOS LOGS PARA DEBUG
+        console.log('🏢 Centros del representante RAW:', res);
+        console.log('🏢 Centros del representante procesados:', centrosDelRepresentante);
+        console.log('🔢 Cantidad de centros:', centrosDelRepresentante?.length || 0);
+        
+        // Guardar centros para usar después
+        this.centrosDisponibles = centrosDelRepresentante;
+        
+        // Si tiene varios centros, abrir selector con grid
+        if (centrosDelRepresentante.length > 1) {
+          this.abrirSelectorCentroGrid(centrosDelRepresentante);
+          return;
+        }
+        
+        // Si tiene solo un centro, mostrar formulario directo
+        const centroUnico = centrosDelRepresentante[0];
+        
+        const alert = await this.alertController.create({
+          header: 'Crear Campaña',
+          inputs: [
             {
               name: 'nombre_campana',
               type: 'text',
               placeholder: 'Nombre de la campaña'
             },
-        {
-          name: 'fecha_campana',
-          type: 'date',
-          placeholder: 'Fecha de inicio de la campaña'
-        },
-        {
-          name: 'fecha_termino',
-          type: 'date',
-          placeholder: 'Fecha de término de la campaña'
-        },
-        {
-          name: 'apertura',
-          type: 'time',
-          placeholder: 'Hora de apertura (ej: 08:00)'
-        },
-        {
-          name: 'cierre',
-          type: 'time',
-          placeholder: 'Hora de cierre (ej: 18:00)'
-        },
-        {
-          name: 'meta',
-          type: 'text',
-          placeholder: 'Meta de donaciones'
+            {
+              name: 'fecha_campana',
+              type: 'date',
+              placeholder: 'Fecha de inicio de la campaña'
             },
-            // Separador visual
+            {
+              name: 'fecha_termino',
+              type: 'date',
+              placeholder: 'Fecha de término de la campaña'
+            },
+            {
+              name: 'apertura',
+              type: 'time',
+              placeholder: 'Hora de apertura (ej: 08:00)'
+            },
+            {
+              name: 'cierre',
+              type: 'time',
+              placeholder: 'Hora de cierre (ej: 18:00)'
+            },
+            {
+              name: 'meta',
+              type: 'text',
+              placeholder: 'Meta de donaciones'
+            },
             {
               name: 'separador',
               type: 'text',
               value: '--- UBICACIÓN ---',
               disabled: true
             },
-            // Opciones de ubicación
-            ...centroOptions
+            {
+              name: 'centro_info',
+              type: 'text',
+              value: `📍 Se usará: ${centroUnico.nombre_centro}`,
+              disabled: true
+            }
           ],
           buttons: [
             {
@@ -744,33 +724,25 @@ export class IndexPage implements OnInit, OnDestroy {
             {
               text: 'Seleccionar en el mapa',
               handler: (data) => {
-                // Guardar datos del formulario
                 this.campanaDatos = data;
-                // Cerrar el modal y abrir selector de mapa
                 setTimeout(() => {
                   this.abrirSelectorMapaIntegrado(data);
-                }, 100); // Pequeño delay para que se cierre el modal primero
-                return true; // Cerrar el alert
+                }, 100);
+                return true;
               }
             },
             {
               text: 'Confirmar',
               handler: async (data) => {
-                // Validar que se haya seleccionado una ubicación
-                if (!this.ubicacionSeleccionada && data.ubicacion !== 'mapa') {
-                  this.showToast('Por favor selecciona una ubicación', 'warning');
-                  return false;
-                }
-                
-                // Preparar datos para enviar
+                // Usar el centro único automáticamente
                 const nuevaCampana = {
                   ...data,
-                  latitud: this.ubicacionSeleccionada?.lat || -33.4489,
-                  longitud: this.ubicacionSeleccionada?.lng || -70.6693,
-                  id_centro: this.ubicacionSeleccionada?.tipo === 'centro' ? 
-                    parseInt(data.ubicacion?.replace('centro_', '')) : null
+                  latitud: centroUnico.latitud || -33.4489,
+                  longitud: centroUnico.longitud || -70.6693,
+                  id_centro: centroUnico.id_centro
                 };
                 
+                console.log('📍 Usando centro único:', centroUnico.nombre_centro);
                 await this.enviarCampana(nuevaCampana);
                 return true;
               }
@@ -785,6 +757,113 @@ export class IndexPage implements OnInit, OnDestroy {
         this.showToast('Error al cargar centros', 'danger');
       }
     });
+  }
+
+  async abrirSelectorCentroGrid(centros: any[]) {
+    // Crear inputs para el formulario principal
+    const formInputs: any[] = [
+      {
+        name: 'nombre_campana',
+        type: 'text' as const,
+        placeholder: 'Nombre de la campaña'
+      },
+      {
+        name: 'fecha_campana',
+        type: 'date' as const,
+        placeholder: 'Fecha de inicio de la campaña'
+      },
+      {
+        name: 'fecha_termino',
+        type: 'date' as const,
+        placeholder: 'Fecha de término de la campaña'
+      },
+      {
+        name: 'apertura',
+        type: 'time' as const,
+        placeholder: 'Hora de apertura (ej: 08:00)'
+      },
+      {
+        name: 'cierre',
+        type: 'time' as const,
+        placeholder: 'Hora de cierre (ej: 18:00)'
+      },
+      {
+        name: 'meta',
+        type: 'text' as const,
+        placeholder: 'Meta de donaciones'
+      },
+      {
+        name: 'separador',
+        type: 'text' as const,
+        value: '--- SELECCIONAR CENTRO ---',
+        disabled: true
+      }
+    ];
+
+    // Agregar radio buttons para cada centro (ahora deberían funcionar mejor sin handlers)
+    centros.forEach((centro, index) => {
+      formInputs.push({
+        name: 'centro_selected',
+        type: 'radio' as const,
+        label: centro.nombre_centro,
+        value: centro.id_centro.toString(),
+        checked: index === 0
+      });
+    });
+
+    const alert = await this.alertController.create({
+      header: 'Crear Campaña',
+      inputs: formInputs,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Seleccionar en el mapa',
+          handler: (data) => {
+            this.campanaDatos = data;
+            setTimeout(() => {
+              this.abrirSelectorMapaIntegrado(data);
+            }, 100);
+            return true;
+          }
+        },
+        {
+          text: 'Confirmar',
+          handler: async (data) => {
+            console.log('📋 Datos del formulario:', data);
+            
+            // Buscar el centro seleccionado
+            const idCentroSeleccionado = data.centro_selected;
+            if (!idCentroSeleccionado) {
+              this.showToast('Por favor selecciona un centro', 'warning');
+              return false;
+            }
+            
+            const centro = this.centrosDisponibles.find(c => c.id_centro.toString() === idCentroSeleccionado);
+            if (!centro) {
+              this.showToast('Centro no encontrado', 'danger');
+              return false;
+            }
+            
+            // Preparar datos para enviar
+            const nuevaCampana = {
+              ...data,
+              latitud: centro.latitud || -33.4489,
+              longitud: centro.longitud || -70.6693,
+              id_centro: centro.id_centro
+            };
+            
+            console.log('📍 Usando centro seleccionado:', centro.nombre_centro);
+            await this.enviarCampana(nuevaCampana);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   abrirSelectorMapaIntegrado(data: any) {
@@ -853,8 +932,8 @@ export class IndexPage implements OnInit, OnDestroy {
   }
 
   async reabrirFormularioConUbicacion() {
-    // Volver a obtener centros del representante
-    this.apiService.getCentrosDonacion("representante=true").subscribe({
+    // Volver a obtener centros del representante específico
+    this.apiService.getCentrosDonacion(`representante=${this.userId}&campanas=true`).subscribe({
       next: async (res) => {
         const centrosDelRepresentante = res.data || res;
         
@@ -884,6 +963,7 @@ export class IndexPage implements OnInit, OnDestroy {
         }
         
         centroOptions.push({
+          name: 'ubicacion',
           type: 'radio' as const,
           label: mapaLabel,
           value: 'mapa',
@@ -959,19 +1039,47 @@ export class IndexPage implements OnInit, OnDestroy {
             {
               text: 'Confirmar',
           handler: async (data) => {
-                // Validar que se haya seleccionado una ubicación
-                if (!this.ubicacionSeleccionada && !data.ubicacion) {
-                  this.showToast('Por favor selecciona una ubicación', 'warning');
-            return false;
+                console.log('📋 Datos del formulario:', data);
+                
+                // Buscar qué opción de ubicación fue seleccionada
+                let ubicacionSeleccionada = null;
+                let idCentroSeleccionado: number | null = null;
+                
+                // Revisar si se seleccionó un centro
+                if (data.ubicacion && data.ubicacion.startsWith('centro_')) {
+                  idCentroSeleccionado = parseInt(data.ubicacion.replace('centro_', ''));
+                  const centroSeleccionado = this.centrosDisponibles.find(c => c.id_centro === idCentroSeleccionado);
+                  if (centroSeleccionado) {
+                    ubicacionSeleccionada = {
+                      lat: centroSeleccionado.latitud || -33.4489,
+                      lng: centroSeleccionado.longitud || -70.6693,
+                      tipo: 'centro',
+                      descripcion: centroSeleccionado.nombre_centro
+                    };
+                  }
+                } else if (data.ubicacion === 'mapa') {
+                  if (this.ubicacionSeleccionada?.tipo === 'mapa') {
+                    ubicacionSeleccionada = this.ubicacionSeleccionada;
+                  } else {
+                    this.showToast('Por favor selecciona una ubicación en el mapa primero', 'warning');
+                    return false;
+                  }
                 }
+                
+                // Validar que se haya seleccionado alguna ubicación
+                if (!ubicacionSeleccionada) {
+                  this.showToast('Por favor selecciona una ubicación', 'warning');
+                  return false;
+                }
+                
+                console.log('📍 Ubicación seleccionada:', ubicacionSeleccionada);
                 
                 // Preparar datos para enviar
                 const nuevaCampana = {
                   ...data,
-                  latitud: this.ubicacionSeleccionada?.lat || -33.4489,
-                  longitud: this.ubicacionSeleccionada?.lng || -70.6693,
-                  id_centro: this.ubicacionSeleccionada?.tipo === 'centro' ? 
-                    parseInt(data.ubicacion?.replace('centro_', '')) : null
+                  latitud: ubicacionSeleccionada.lat,
+                  longitud: ubicacionSeleccionada.lng,
+                  id_centro: idCentroSeleccionado
                 };
                 
                 await this.enviarCampana(nuevaCampana);
@@ -992,7 +1100,7 @@ export class IndexPage implements OnInit, OnDestroy {
   
   async mostrarSelectorCentro(dataForm1: any) {
     // Obtener solo los centros del representante actual
-    this.apiService.getCentrosDonacion("representante=true").subscribe({
+    this.apiService.getCentrosDonacion(`representante=${this.userId}&campanas=true`).subscribe({
       next: async (res) => {
         const centrosDelRepresentante = res.data || res;
         console.log('🏢 Centros del representante:', centrosDelRepresentante);
