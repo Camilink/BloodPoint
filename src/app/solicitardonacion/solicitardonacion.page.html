@@ -1,7 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Solicitar Donacion</ion-title>
-  </ion-toolbar>
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </ion-header>
 
@@ -27,6 +25,7 @@
 
   <!-- Form Fields -->
   <div class="form-container">
+
     <ion-item>
       <ion-select label="Tipo de sangre" interface="action-sheet" [(ngModel)]="formulario.tipo_sangre_sol" name="tipo_sangre_sol">
         <ion-select-option value="O -">O -</ion-select-option>
@@ -57,7 +56,8 @@
         label="Centro de donación"
         interface="action-sheet"
         [(ngModel)]="formulario.centro_donacion"
-        name="centro_donacion">
+        name="centro_donacion"
+        (ionChange)="onCentroSeleccionado()">
         
         <ion-select-option
           *ngFor="let centro of centros"
@@ -67,83 +67,38 @@
         
       </ion-select>
     </ion-item>
-    
 
-        <!-- Fecha solicitud -->
+    <!-- Información automática del centro -->
+    <div *ngIf="formulario.centro_donacion" class="centro-info">
+      <ion-item lines="none">
+        <ion-label>
+          <h3>📍 Ubicación del centro</h3>
+          <p>{{ formulario.comuna_solicitud }}, {{ formulario.ciudad_solicitud }}</p>
+          <p><small>{{ formulario.region_solicitud }}</small></p>
+        </ion-label>
+      </ion-item>
+    </div>
+
+    <!-- Fechas en formato compacto -->
     <ion-item>
-      <ion-datetime 
-        presentation="date" 
-        label="Fecha de inicio" 
+      <ion-input
+        label="Fecha de inicio"
+        type="date"
         [min]="fechaMinima"
         [(ngModel)]="formulario.fecha_solicitud"
         name="fecha_solicitud">
-      </ion-datetime>
+      </ion-input>
     </ion-item>
 
-    <!-- Fecha término -->
     <ion-item>
-      <ion-datetime 
-        presentation="date" 
+      <ion-input
         label="Fecha de término"
+        type="date"
         [min]="fechaMinima"
         [(ngModel)]="formulario.fecha_termino"
         name="fecha_termino">
-      </ion-datetime>
-    </ion-item>
-
-    <!-- Horario de apertura -->
-    <ion-item>
-      <ion-datetime 
-        presentation="time" 
-        label="Hora de apertura"
-        [(ngModel)]="formulario.apertura"
-        name="apertura">
-      </ion-datetime>
-    </ion-item>
-
-    <!-- Horario de cierre -->
-    <ion-item>
-      <ion-datetime 
-        presentation="time" 
-        label="Hora de cierre"
-        [(ngModel)]="formulario.cierre"
-        name="cierre">
-      </ion-datetime>
-    </ion-item>
-
-    <!-- Comuna -->
-    <ion-item>
-      <ion-input 
-        label="Comuna" 
-        placeholder="Ingrese la comuna"
-        maxlength="50"
-        [(ngModel)]="formulario.comuna_solicitud" 
-        name="comuna_solicitud">
       </ion-input>
     </ion-item>
-
-    <!-- Ciudad -->
-    <ion-item>
-      <ion-input 
-        label="Ciudad" 
-        placeholder="Ingrese la ciudad"
-        maxlength="50"
-        [(ngModel)]="formulario.ciudad_solicitud" 
-        name="ciudad_solicitud">
-      </ion-input>
-    </ion-item>
-
-    <!-- Región -->
-    <ion-item>
-      <ion-input 
-        label="Región" 
-        placeholder="Ingrese la región"
-        maxlength="50"
-        [(ngModel)]="formulario.region_solicitud" 
-        name="region_solicitud">
-      </ion-input>
-    </ion-item>
-
 
     <ion-item>
       <ion-textarea

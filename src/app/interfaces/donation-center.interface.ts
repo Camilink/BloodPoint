@@ -1,9 +1,9 @@
 export interface Schedule {
-  days: string;
-  hours: string;
+  [key: string]: string;
 }
+
 export interface DonationCenter {
-  id_centro: number;
+  id_centro: number | null;
   nombre_centro: string;
   direccion_centro: string;
   comuna: string;

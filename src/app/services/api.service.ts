@@ -5,6 +5,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { DonanteFormulario } from '../interfaces/donante-formulario';
 import { Donante } from '../interfaces/donante-backend';
 import { LoginCredentials, LoginResponse } from '../interfaces/login';
+import { HistorialDonacionesResponse, DonacionHistorial } from '../interfaces/donacion-historial.interface';
 import { HttpHeaders } from '@angular/common/http'; 
 const API_URL = 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com';
 import { CampanaActiva } from '../interfaces/campana.interface';
@@ -119,16 +120,23 @@ export class ApiService {
     return this.http.post(`${API_URL}/donaciones/registrar/`, donacion, { headers });
   }
   
-getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
-  const token = localStorage.getItem('authToken');
-  const headers = new HttpHeaders({
-    'Authorization': `Token ${token}`
-  });
+  getHistorialDonaciones(): Observable<HistorialDonacionesResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`
+    });
 
-  return this.http.get<{ donaciones: any[] }>(`${API_URL}/donaciones/historial/`, { headers });
-}
+    return this.http.get<HistorialDonacionesResponse>(`${API_URL}/donaciones/historial/`, { headers }).pipe(
+      tap(response => {
+        console.log('📋 Respuesta del historial:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error en historial:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 
-  
   logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user_id');
@@ -137,6 +145,16 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
   guardarDonacion(donacionData: any) {
     return this.http.post(`${API_URL}/donaciones`, donacionData);
   }
+
+  getCampanasRepresentante() {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    // Usar el endpoint correcto que existe en las URLs de Django
+    return this.http.get<any[]>(`${API_URL}/api/campanas_activas_representante/`, { headers });
+  }  
   
   guardarDonacionQR(donacionData: any): Observable<any> {
     const token = localStorage.getItem('authToken');
@@ -260,5 +278,25 @@ getHistorialDonaciones(): Observable<{ donaciones: any[] }> {
       'Content-Type': 'application/json'
     });
     return this.http.get<any[]>(`${API_URL}/achievements/`, { headers });
+  }
+
+  /**
+   * POST /record-app-share - Registrar que el usuario compartió la app/donación
+   */
+  registrarCompartir(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(`${API_URL}/record-app-share/`, {}, { headers }).pipe(
+      tap(response => {
+        console.log('✅ Compartir registrado:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error al registrar compartir:', error);
+        return throwError(() => error);
+      })
+    );
   }
 }

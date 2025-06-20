@@ -34,8 +34,8 @@ ion-content {
     position: relative;
     z-index: 1;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 15px;
-    margin: 16px;
+    border-radius: 0.9375rem; // 15px convertido a rem
+    margin: 0.5rem 1rem 6rem 1rem; // Margen inferior grande para el menú (96px = 6rem)
   }
 
   ion-list {
@@ -189,10 +189,10 @@ ion-content {
   }
 }
 .qr-button-container {
-  padding: 16px;
+  padding: 0.5rem 1rem; // Convertido a rem
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.5rem; // Convertido a rem
 }
 
 .qr-button {
@@ -449,6 +449,265 @@ ion-content {
         }
       }
     }
+  }
+}
+
+// Estilos modernos para la sección de campañas
+.campaigns-card {
+  margin: 0.5rem 1rem 0 1rem !important;
+  margin-bottom: 5rem !important; // Margen inferior para separación del menú
+  border-radius: 1rem !important;
+  box-shadow: 0 0.25rem 1rem rgba(221, 75, 75, 0.1) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%) !important;
+  border: none !important;
+  overflow: hidden;
+}
+
+.campaigns-header {
+  background: linear-gradient(135deg, #DD4B4B 0%, #c44242 100%) !important;
+  color: white !important;
+  padding: 0.75rem 1rem !important; // Reducir padding para hacer más compacto
+  border-bottom: none !important;
+  
+  .campaigns-title {
+    color: white !important;
+    font-size: 1rem !important; // Reducir tamaño de fuente
+    font-weight: 600 !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem; // Reducir gap
+    
+    .title-icon {
+      font-size: 1.125rem; // Reducir tamaño del ícono
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+}
+
+.campaigns-content {
+  padding: 0 !important;
+  background: transparent;
+}
+
+.campaigns-table-container {
+  width: 100%;
+  max-height: 18rem; // Altura aumentada para ver más campañas
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // Scrollbar personalizado
+  &::-webkit-scrollbar {
+    width: 0.375rem; // 6px
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f8f9fa;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(221, 75, 75, 0.3);
+    border-radius: 0.1875rem; // 3px
+    
+    &:hover {
+      background: rgba(221, 75, 75, 0.5);
+    }
+  }
+}
+
+.campaigns-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: white;
+  
+  thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #DD4B4B;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
+    tr {
+      th {
+        padding: 0.5rem 0.75rem; // Reducir padding para hacer más compacto
+        text-align: left;
+        font-weight: 600;
+        color: #DD4B4B;
+        font-size: 0.75rem; // Reducir tamaño de fuente
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-right: 1px solid rgba(221, 75, 75, 0.1);
+        
+        &:last-child {
+          border-right: none;
+        }
+        
+        &.header-name {
+          width: 65%;
+        }
+        
+        &.header-action {
+          width: 35%;
+          text-align: center;
+        }
+      }
+    }
+  }
+  
+  tbody {
+    .campaign-row {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      
+      &:hover {
+        background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(221, 75, 75, 0.1);
+      }
+      
+      &.campaign-selected {
+        background: linear-gradient(135deg, #DD4B4B 0%, #c44242 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(221, 75, 75, 0.3);
+        
+        .campaign-name-text {
+          color: white !important;
+          font-weight: 600;
+        }
+        
+        .campaign-icon {
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+      }
+      
+      &:nth-child(even):not(.campaign-selected) {
+        background: rgba(248, 249, 250, 0.5);
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .campaign-name-cell {
+      padding: 0.625rem 0.75rem; // Reducir padding
+      vertical-align: middle;
+      
+      .campaign-name-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem; // Reducir gap
+        
+        .campaign-icon {
+          font-size: 1rem; // Reducir tamaño del ícono
+          color: #DD4B4B;
+          flex-shrink: 0;
+        }
+        
+        .campaign-name-text {
+          font-size: 0.875rem; // Reducir tamaño de fuente
+          font-weight: 500;
+          color: #2c3e50;
+          line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+    
+    .campaign-action-cell {
+      padding: 0.625rem 0.75rem; // Reducir padding
+      text-align: center;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Estilos para los botones de campaña
+.campaign-button {
+  --background: linear-gradient(135deg, #DD4B4B 0%, #c44242 100%);
+  --background-hover: linear-gradient(135deg, #c44242 0%, #b83c3c 100%);
+  --background-activated: linear-gradient(135deg, #b83c3c 0%, #a53535 100%);
+  --color: white;
+  --border-radius: 0.375rem; // Reducir border-radius
+  --padding-start: 0.5rem; // Reducir padding
+  --padding-end: 0.5rem; // Reducir padding
+  --padding-top: 0.375rem; // Reducir padding
+  --padding-bottom: 0.375rem; // Reducir padding
+  --box-shadow: 0 2px 4px rgba(221, 75, 75, 0.2);
+  
+  font-size: 0.75rem; // Reducir tamaño de fuente
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.025em;
+  min-width: 6rem; // Reducir ancho mínimo
+  height: 1.875rem; // Reducir altura
+  
+  .button-icon {
+    font-size: 0.875rem; // Reducir tamaño del ícono
+    margin-right: 0.1875rem; // Reducir margen
+  }
+  
+  &.selected-button {
+    --background: linear-gradient(135deg, #28a745 0%, #20a83a 100%);
+    --background-hover: linear-gradient(135deg, #20a83a 0%, #1e7e34 100%);
+    --background-activated: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+    --box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    --box-shadow: 0 4px 8px rgba(221, 75, 75, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Estado sin campañas
+.no-campaigns-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem; // 48px 24px
+  text-align: center;
+  
+  .no-campaigns-icon {
+    font-size: 4rem; // 64px
+    color: rgba(221, 75, 75, 0.3);
+    margin-bottom: 1rem;
+  }
+  
+  .no-campaigns-text {
+    font-size: 1.125rem; // 18px
+    font-weight: 500;
+    color: #6c757d;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .no-campaigns-subtitle {
+    font-size: 0.875rem; // 14px
+    color: #adb5bd;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+// CSS responsivo simple
+@media (max-width: 48rem) {
+  .campaigns-card {
+    margin: 0.25rem 0.5rem 0 0.5rem !important;
+    margin-bottom: 7.5rem !important; // Margen aumentado para más distancia del menú
+    border-radius: 0.75rem !important;
+  }
+  
+  .campaigns-table-container {
+    max-height: 16rem; // Altura ajustada para móviles
   }
 }
 

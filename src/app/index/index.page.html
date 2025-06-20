@@ -45,27 +45,60 @@
     </ion-button>
   </div>
 
-  <!-- <ion-card class="donation-centers-card">
-    <ion-card-header>
-      <ion-card-title>
-        <p style="color: #DD4B4B;">Puntos de Donación</p>
+  <ion-card *ngIf="isRepresentante" class="campaigns-card">
+    <ion-card-header class="campaigns-header">
+      <ion-card-title class="campaigns-title">
+        <ion-icon name="calendar-outline" class="title-icon"></ion-icon>
+        Campañas Disponibles
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
-      <div class="scrollable-container">
-        <ion-list>
-          <ion-item *ngFor="let center of sortedCenters" (click)="focusOnCenter(center)">
-            <ion-label>
-              <h3>{{ center.nombre_centro }}</h3>
-              <p class="address">{{ center.direccion_centro }}</p>
-              <p class="comuna">{{ center.comuna }}</p>
-              <p class="telefono">{{ center.telefono || 'No disponible' }}</p>
-              <p class="fecha">Creado el {{ center.fecha_creacion }}</p>
-              <p class="distance">Distancia: {{ center.distancia }}</p>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </div>
+    <ion-card-content class="campaigns-content">
+      <ng-container *ngIf="campanasDisponibles.length > 0; else noCampanas">
+        <div class="campaigns-table-container">
+          <table class="campaigns-table">
+            <thead>
+              <tr>
+                <th class="header-name">Nombre de la Campaña</th>
+                <th class="header-action">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let campana of campanasDisponibles" 
+                  class="campaign-row"
+                  [class.campaign-selected]="campana.selected"
+                  (click)="toggleCampanaSelection(campana)">
+                <td class="campaign-name-cell">
+                  <div class="campaign-name-content">
+                    <ion-icon name="megaphone-outline" class="campaign-icon"></ion-icon>
+                    <span class="campaign-name-text">{{ campana.nombre_campana }}</span>
+                  </div>
+                </td>
+                <td class="campaign-action-cell">
+                  <ion-button 
+                    class="campaign-button"
+                    [class.selected-button]="campana.selected"
+                    size="small" 
+                    fill="solid"
+                    (click)="seleccionarCampana(campana); $event.stopPropagation()">
+                    <ion-icon [name]="campana.selected ? 'checkmark-circle' : 'radio-button-off'" 
+                              slot="start" class="button-icon"></ion-icon>
+                    {{ campana.selected ? 'Seleccionada' : 'Seleccionar' }}
+              </ion-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+  
+      <ng-template #noCampanas>
+        <div class="no-campaigns-container">
+          <ion-icon name="calendar-clear-outline" class="no-campaigns-icon"></ion-icon>
+          <p class="no-campaigns-text">No tienes campañas activas disponibles</p>
+          <p class="no-campaigns-subtitle">Crea una nueva campaña para comenzar</p>
+        </div>
+      </ng-template>
     </ion-card-content>
-  </ion-card> -->  
+  </ion-card>
+  
 </ion-content>

@@ -48,6 +48,8 @@ export class IndexPage implements OnInit, OnDestroy {
     (mapboxgl as any).accessToken = environment.mapbox.accessToken;
   }
 
+  campanasDisponibles: any[] = [];
+
   ngOnInit() {
     console.log('🏁 Iniciando IndexPage');
     
@@ -73,6 +75,8 @@ export class IndexPage implements OnInit, OnDestroy {
       this.checkIfRepresentante();
       this.requestLocationPermission();
       this.loadCenters();
+      // Cargar campañas después de obtener la información del usuario
+      this.cargarCampanasDisponibles();
     });
   }
   
@@ -147,12 +151,39 @@ export class IndexPage implements OnInit, OnDestroy {
   }
 
   private async transformCenter(apiCenter: any): Promise<DonationCenter> {
+    console.log(`🏥 [INDEX] Transformando centro: ${apiCenter.nombre_centro}`);
+    console.log(`📍 [INDEX] Dirección original: ${apiCenter.direccion_centro}`);
+    console.log(`🏛️ [INDEX] Comuna en BD (IGNORAR): ${apiCenter.comuna}`);
+    
+    // 1. Obtener coordenadas basándose SOLO en la dirección
     const coordenadas = await this.geocodingService.getCoordinates(apiCenter.direccion_centro);
+    
+    let comunaCalculada = apiCenter.comuna; // Fallback por si falla la geocodificación
+    
+    // 2. Si las coordenadas son válidas, calcular la comuna correcta
+    if (coordenadas && Array.isArray(coordenadas) && coordenadas.length === 2) {
+      try {
+        console.log(`🔍 [INDEX] Calculando comuna para coordenadas: [${coordenadas[0]}, ${coordenadas[1]}]`);
+        const geoInfo = await this.geocodingService.getReverseGeocode(coordenadas as [number, number]);
+        if (geoInfo && geoInfo.comuna) {
+          comunaCalculada = geoInfo.comuna;
+          console.log(`✅ [INDEX] Comuna calculada correctamente: ${comunaCalculada} (era ${apiCenter.comuna} en BD)`);
+        } else {
+          console.warn(`⚠️ [INDEX] No se pudo calcular comuna, usando la de BD: ${apiCenter.comuna}`);
+        }
+      } catch (error) {
+        console.error('❌ [INDEX] Error calculando comuna:', error);
+        console.warn(`⚠️ [INDEX] Usando comuna de BD por error: ${apiCenter.comuna}`);
+      }
+    } else {
+      console.warn(`⚠️ [INDEX] Coordenadas inválidas, usando comuna de BD: ${apiCenter.comuna}`);
+    }
+    
     return {
       id_centro: apiCenter.id_centro,
       nombre_centro: apiCenter.nombre_centro,
       direccion_centro: apiCenter.direccion_centro,
-      comuna: apiCenter.comuna,
+      comuna: comunaCalculada, // ✅ USAR LA COMUNA CALCULADA, NO LA DE BD
       telefono: apiCenter.telefono,
       fecha_creacion: apiCenter.fecha_creacion,
       created_at: apiCenter.created_at,
@@ -299,6 +330,207 @@ export class IndexPage implements OnInit, OnDestroy {
     });
   }
 
+  cargarCampanasDisponibles() {
+    // Para usuarios donantes, usar el endpoint público de campañas activas
+    this.apiService.getCampanasActivas().subscribe({
+      next: (response: any) => {
+        console.log('📋 Respuesta de campañas activas:', response);
+        // El endpoint devuelve un objeto con { status, data }
+        const campanas = response.data || response;
+        // Filtrar solo campañas validadas (ya vienen filtradas del backend)
+        this.campanasDisponibles = Array.isArray(campanas) ? campanas : [];
+        
+                // Convertir campañas a formato de centros para mostrar en el mapa
+        this.campanasDisponibles.forEach(async campana => {
+          // Para campañas con centro asociado, usar las coordenadas del centro
+          if (campana.id_centro) {
+            const centro = this.donationCenters.find(c => c.id_centro === campana.id_centro);
+            if (centro && centro.coordenadas) {
+              // Crear nombre optimizado para solicitudes asociadas a centros
+              let nombreOptimizado = campana.nombre_campana || 'Campaña';
+              
+              // Si es una solicitud (tiene id_solicitud) y tipo de sangre, priorizar esa información
+              if (campana.id_solicitud && campana.tipo_sangre_sol) {
+                // Formato: "🩸 [TIPO_SANGRE] - [CENTRO_CORTO] - [CANTIDAD] personas"
+                const centroCorto = centro.nombre_centro.split(' ').slice(0, 2).join(' ');
+                const cantidad = campana.cantidad_personas || 'N/A';
+                nombreOptimizado = `🩸 ${campana.tipo_sangre_sol} - ${centroCorto} - ${cantidad} personas`;
+                console.log(`✅ Nombre optimizado para solicitud en centro: ${nombreOptimizado}`);
+              }
+              
+              const campanaMarker = {
+                id_centro: null,
+                nombre_centro: nombreOptimizado, // ✅ USAR NOMBRE OPTIMIZADO CON TIPO DE SANGRE
+                direccion_centro: centro.direccion_centro, // ✅ DIRECCIÓN DEL CENTRO ASOCIADO
+                comuna: centro.comuna, // ✅ COMUNA CALCULADA DEL CENTRO
+                telefono: centro.telefono,
+                fecha_creacion: '',
+                created_at: '',
+                id_representante: null,
+                tipo: 'campana' as const,
+                distancia: '0 km',
+                horario_apertura: campana.apertura,
+                horario_cierre: campana.cierre,
+                coordenadas: centro.coordenadas // Usar coordenadas reales del centro
+              };
+              
+              const existeYa = this.donationCenters.find(c => 
+                c.tipo === 'campana' && c.nombre_centro === campana.nombre_campana
+              );
+              
+              if (!existeYa) {
+                this.donationCenters.push(campanaMarker);
+                this.addMarkerToMap(campanaMarker);
+              }
+            }
+          }
+          // Para campañas sin centro (móviles), usar geocoding si hay coordenadas válidas
+          else if (campana.latitud && campana.longitud) {
+            try {
+              console.log(`🏁 Campaña ${campana.nombre_campana}: lat original=${campana.latitud}, lon original=${campana.longitud}`);
+              
+              // Convertir a números si vienen como strings, manteniendo máxima precisión
+              const latOriginal = typeof campana.latitud === 'string' ? parseFloat(campana.latitud) : campana.latitud;
+              const lngOriginal = typeof campana.longitud === 'string' ? parseFloat(campana.longitud) : campana.longitud;
+              
+              console.log(`🔍 Campaña ${campana.nombre_campana}: lat parseado=${latOriginal}, lon parseado=${lngOriginal}`);
+              
+              // Verificar si las coordenadas ya están en el rango correcto de Chile
+              const latValida = latOriginal >= -56 && latOriginal <= -17 && latOriginal !== 0;
+              const lngValida = lngOriginal >= -76 && lngOriginal <= -66 && lngOriginal !== 0;
+              
+              let lat, lng;
+              
+              if (latValida && lngValida) {
+                // Si las coordenadas ya están en rango válido, usarlas directamente
+                lat = latOriginal;
+                lng = lngOriginal;
+                console.log(`✅ Campaña ${campana.nombre_campana}: coordenadas ya válidas -> [${lng}, ${lat}]`);
+              } else {
+                // Solo normalizar si están fuera de rango
+                lat = this.normalizeCoordinate(latOriginal, 'lat');
+                lng = this.normalizeCoordinate(lngOriginal, 'lon');
+                console.log(`🔄 Campaña ${campana.nombre_campana}: coordenadas normalizadas -> [${lng}, ${lat}]`);
+              }
+              
+              // Verificar precisión - si las coordenadas tienen muchos decimales, mantenerlas
+              const precision = Math.max(
+                (latOriginal.toString().split('.')[1] || '').length,
+                (lngOriginal.toString().split('.')[1] || '').length
+              );
+              
+              if (precision > 6) {
+                console.log(`🎯 Campaña ${campana.nombre_campana}: alta precisión detectada (${precision} decimales)`);
+              }
+              
+              // Validación final: asegurar que las coordenadas están dentro de rangos globales válidos
+              if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+                console.warn(`⚠️ Coordenadas finales inválidas para ${campana.nombre_campana}: [${lng}, ${lat}]`);
+                return; // Saltar esta campaña
+              }
+              
+              // Obtener dirección y comuna para la campaña móvil
+              let direccionCampana = 'Ubicación personalizada';
+              let comunaCampana = 'Comuna no identificada';
+              
+              try {
+                const locationInfo = await this.geocodingService.getReverseGeocode([lng, lat]);
+                if (locationInfo) {
+                  direccionCampana = locationInfo.address;
+                  comunaCampana = locationInfo.comuna;
+                  console.log(`📍 [INDEX] Dirección calculada para ${campana.nombre_campana}: ${direccionCampana}, ${comunaCampana}`);
+                }
+              } catch (error) {
+                console.warn(`⚠️ [INDEX] No se pudo calcular dirección para ${campana.nombre_campana}:`, error);
+              }
+              
+              // Crear nombre optimizado para solicitudes
+              let nombreOptimizado = campana.nombre_campana || 'Campaña móvil';
+              
+              // Si es una solicitud (tiene id_solicitud) y tipo de sangre, priorizar esa información
+              if (campana.id_solicitud && campana.tipo_sangre_sol) {
+                // Formato: "🩸 [TIPO_SANGRE] - Móvil - [CANTIDAD] personas"
+                const cantidad = campana.cantidad_personas || 'N/A';
+                nombreOptimizado = `🩸 ${campana.tipo_sangre_sol} - Móvil - ${cantidad} personas`;
+                console.log(`✅ Nombre optimizado para solicitud móvil: ${nombreOptimizado}`);
+              }
+              
+              const campanaMarker = {
+                id_centro: null,
+                nombre_centro: nombreOptimizado, // ✅ USAR NOMBRE OPTIMIZADO CON TIPO DE SANGRE
+                direccion_centro: direccionCampana,
+                comuna: comunaCampana,
+                telefono: '',
+                fecha_creacion: '',
+                created_at: '',
+                id_representante: null,
+                tipo: 'campana' as const,
+                distancia: '0 km',
+                horario_apertura: campana.apertura,
+                horario_cierre: campana.cierre,
+                coordenadas: [lng, lat] as [number, number]
+              };
+              
+              const existeYa = this.donationCenters.find(c => 
+                c.tipo === 'campana' && c.nombre_centro === campana.nombre_campana
+              );
+              
+              if (!existeYa) {
+                this.donationCenters.push(campanaMarker);
+                this.addMarkerToMap(campanaMarker);
+                console.log(`📍 Marcador agregado para campaña ${campana.nombre_campana} en [${lng}, ${lat}]`);
+              }
+            } catch (error) {
+              console.error('Error procesando coordenadas de campaña:', error);
+            }
+          } else {
+            console.warn(`⚠️ Campaña ${campana.nombre_campana} sin coordenadas válidas:`, {
+              latitud: campana.latitud,
+              longitud: campana.longitud,
+              id_centro: campana.id_centro
+            });
+          }
+        });
+        
+        console.log('📋 Campañas cargadas:', this.campanasDisponibles);
+        console.log('🗺️ Centros con campañas agregadas:', this.donationCenters);
+      },
+      error: (error) => {
+        console.error('Error al cargar campañas:', error);
+        // En caso de error, inicializar array vacío para evitar errores en la UI
+        this.campanasDisponibles = [];
+        
+        // Mostrar mensaje al usuario si es necesario
+        if (error.status === 403) {
+          console.warn('⚠️ Acceso denegado a campañas. Usuario puede ser donante regular.');
+        } else if (error.status === 401) {
+          console.warn('⚠️ Token de autenticación inválido o expirado.');
+        }
+      }
+    });
+  }
+  
+  toggleCampanaSelection(campana: any) {
+    // Limpiar selección anterior
+    this.campanasDisponibles.forEach(c => c.selected = false);
+    // Seleccionar la campaña actual
+    campana.selected = true;
+  }
+  
+  seleccionarCampana(campana: any) {
+    // Marcar como seleccionada
+    this.toggleCampanaSelection(campana);
+    
+    const lugar = {
+      tipo: 'campana',
+      campana_id: campana.id_campana,
+      centro_id: campana.id_centro || null
+    };
+    localStorage.setItem('lugarDonacionSeleccionado', JSON.stringify(lugar));
+    this.showToast('📍 Campaña seleccionada correctamente', 'success');
+  }
+  
+
   async addNewDonationCenter() {
     const alert = await this.alertController.create({
       header: 'Nuevo Centro de Donación',
@@ -406,37 +638,306 @@ export class IndexPage implements OnInit, OnDestroy {
     });
   }
 
+  // Variables para el formulario integrado
+  private campanaDatos: any = {};
+  private ubicacionSeleccionada: { lat: number, lng: number, tipo: string, descripcion: string } | null = null;
+
   async abrirFormularioCampana() {
-    const centros = this.donationCenters;
+    // Resetear datos
+    this.campanaDatos = {};
+    this.ubicacionSeleccionada = null;
+    
+    // Obtener centros del representante
+    this.apiService.getCentrosDonacion("representante=true").subscribe({
+      next: async (res) => {
+        const centrosDelRepresentante = res.data || res;
+        console.log('🏢 Centros del representante:', centrosDelRepresentante);
+        
+                 // Crear opciones para el selector de centro
+         const centroOptions: any[] = [];
+         if (centrosDelRepresentante && centrosDelRepresentante.length > 0) {
+           centrosDelRepresentante.forEach((centro: any) => {
+             const esCentroSeleccionado = this.ubicacionSeleccionada?.tipo === 'centro' && 
+                                        this.ubicacionSeleccionada?.descripcion === centro.nombre_centro;
+             const labelCentro = esCentroSeleccionado ? 
+               `✅ ${centro.nombre_centro} (seleccionado)` : 
+               centro.nombre_centro;
+               
+             centroOptions.push({
+               type: 'radio' as const,
+               label: labelCentro,
+               value: `centro_${centro.id_centro}`,
+               checked: esCentroSeleccionado,
+               handler: () => {
+                 this.ubicacionSeleccionada = {
+                   lat: centro.latitud || -33.4489,
+                   lng: centro.longitud || -70.6693,
+                   tipo: 'centro',
+                   descripcion: centro.nombre_centro
+                 };
+               }
+             });
+           });
+         }
+         
+         // Agregar opción de mapa
+         let mapaLabelInicial = '📍 Seleccionar ubicación en el mapa';
+         if (this.ubicacionSeleccionada?.tipo === 'mapa') {
+           mapaLabelInicial = `✅ Ubicación en mapa: ${this.ubicacionSeleccionada.lat.toFixed(6)}, ${this.ubicacionSeleccionada.lng.toFixed(6)}`;
+         }
+         
+         centroOptions.push({
+           type: 'radio' as const,
+           label: mapaLabelInicial,
+           value: 'mapa',
+           checked: this.ubicacionSeleccionada?.tipo === 'mapa'
+         });
   
     const alert = await this.alertController.create({
       header: 'Crear Campaña',
       inputs: [
+            {
+              name: 'nombre_campana',
+              type: 'text',
+              placeholder: 'Nombre de la campaña'
+            },
         {
           name: 'fecha_campana',
           type: 'date',
-          label: 'Fecha inicio'
+          placeholder: 'Fecha de inicio de la campaña'
         },
         {
           name: 'fecha_termino',
           type: 'date',
-          label: 'Fecha término'
+          placeholder: 'Fecha de término de la campaña'
         },
         {
           name: 'apertura',
           type: 'time',
-          label: 'Apertura'
+          placeholder: 'Hora de apertura (ej: 08:00)'
         },
         {
           name: 'cierre',
           type: 'time',
-          label: 'Cierre'
+          placeholder: 'Hora de cierre (ej: 18:00)'
         },
         {
           name: 'meta',
           type: 'text',
           placeholder: 'Meta de donaciones'
+            },
+            // Separador visual
+            {
+              name: 'separador',
+              type: 'text',
+              value: '--- UBICACIÓN ---',
+              disabled: true
+            },
+            // Opciones de ubicación
+            ...centroOptions
+          ],
+          buttons: [
+            {
+              text: 'Cancelar',
+              role: 'cancel'
+            },
+            {
+              text: 'Seleccionar en el mapa',
+              handler: (data) => {
+                // Guardar datos del formulario
+                this.campanaDatos = data;
+                // Cerrar el modal y abrir selector de mapa
+                setTimeout(() => {
+                  this.abrirSelectorMapaIntegrado(data);
+                }, 100); // Pequeño delay para que se cierre el modal primero
+                return true; // Cerrar el alert
+              }
+            },
+            {
+              text: 'Confirmar',
+              handler: async (data) => {
+                // Validar que se haya seleccionado una ubicación
+                if (!this.ubicacionSeleccionada && data.ubicacion !== 'mapa') {
+                  this.showToast('Por favor selecciona una ubicación', 'warning');
+                  return false;
+                }
+                
+                // Preparar datos para enviar
+                const nuevaCampana = {
+                  ...data,
+                  latitud: this.ubicacionSeleccionada?.lat || -33.4489,
+                  longitud: this.ubicacionSeleccionada?.lng || -70.6693,
+                  id_centro: this.ubicacionSeleccionada?.tipo === 'centro' ? 
+                    parseInt(data.ubicacion?.replace('centro_', '')) : null
+                };
+                
+                await this.enviarCampana(nuevaCampana);
+                return true;
+              }
+            }
+          ]
+        });
+        
+        await alert.present();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar centros:', error);
+        this.showToast('Error al cargar centros', 'danger');
+      }
+    });
+  }
+
+  abrirSelectorMapaIntegrado(data: any) {
+    const mensaje = 'Haz clic en el mapa para seleccionar una ubicación exacta para tu campaña.';
+    this.showToast(mensaje, 'primary');
+    
+    // Cambiar cursor del mapa para indicar modo de selección
+    this.map.getCanvas().style.cursor = 'crosshair';
+    
+    // Variable para almacenar el marcador temporal
+    let marcadorTemporal: mapboxgl.Marker | null = null;
+    
+    const clickHandler = async (e: mapboxgl.MapMouseEvent) => {
+      const lngLat = e.lngLat;
+      const lat = Number(lngLat.lat.toFixed(8));
+      const lng = Number(lngLat.lng.toFixed(8));
+      
+      // Validación geográfica para Chile
+      const dentroDeChile = lng >= -76 && lng <= -66 && lat >= -56 && lat <= -17;
+      if (!dentroDeChile) {
+        this.showToast('Por favor selecciona un punto dentro de Chile', 'warning');
+        return;
+      }
+      
+      // Restaurar cursor normal
+      this.map.getCanvas().style.cursor = '';
+      
+      // Limpiar marcador anterior
+      if (marcadorTemporal) marcadorTemporal.remove();
+      
+      // Crear marcador temporal
+      marcadorTemporal = new mapboxgl.Marker({ color: '#DD4B4B' })
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+      
+      // Guardar ubicación seleccionada
+      this.ubicacionSeleccionada = {
+        lat: lat,
+        lng: lng,
+        tipo: 'mapa',
+        descripcion: `✅ Ubicación seleccionada en mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      };
+      
+      // Mostrar confirmación
+      this.showToast(`✅ Ubicación seleccionada: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'success');
+      
+      // Remover el event listener
+      this.map.off('click', clickHandler);
+      
+      // Opcional: Remover el marcador después de unos segundos
+      setTimeout(() => {
+        if (marcadorTemporal) {
+          marcadorTemporal.remove();
+          marcadorTemporal = null;
         }
+      }, 3000);
+
+      // Volver a abrir el formulario con la ubicación seleccionada
+      setTimeout(() => {
+        this.reabrirFormularioConUbicacion();
+      }, 1000);
+    };
+    
+    // Agregar el event listener
+    this.map.on('click', clickHandler);
+  }
+
+  async reabrirFormularioConUbicacion() {
+    // Volver a obtener centros del representante
+    this.apiService.getCentrosDonacion("representante=true").subscribe({
+      next: async (res) => {
+        const centrosDelRepresentante = res.data || res;
+        
+        // Crear opciones para el selector de centro
+        const centroOptions: any[] = [];
+                 if (centrosDelRepresentante && centrosDelRepresentante.length > 0) {
+           centrosDelRepresentante.forEach((centro: any) => {
+             const esCentroSeleccionado = this.ubicacionSeleccionada?.tipo === 'centro' && 
+                                        this.ubicacionSeleccionada?.descripcion === centro.nombre_centro;
+             const labelCentro = esCentroSeleccionado ? 
+               `✅ ${centro.nombre_centro} (seleccionado)` : 
+               centro.nombre_centro;
+               
+             centroOptions.push({
+               type: 'radio' as const,
+               label: labelCentro,
+               value: `centro_${centro.id_centro}`,
+               checked: esCentroSeleccionado
+             });
+           });
+         }
+        
+        // Agregar opción de mapa (preseleccionada si ya se eligió)
+        let mapaLabel = '📍 Seleccionar ubicación en el mapa';
+        if (this.ubicacionSeleccionada?.tipo === 'mapa') {
+          mapaLabel = `✅ Ubicación en mapa: ${this.ubicacionSeleccionada.lat.toFixed(6)}, ${this.ubicacionSeleccionada.lng.toFixed(6)}`;
+        }
+        
+        centroOptions.push({
+          type: 'radio' as const,
+          label: mapaLabel,
+          value: 'mapa',
+          checked: this.ubicacionSeleccionada?.tipo === 'mapa'
+        });
+
+        const alert = await this.alertController.create({
+          header: 'Crear Campaña',
+          inputs: [
+            {
+              name: 'nombre_campana',
+              type: 'text',
+              placeholder: 'Nombre de la campaña',
+              value: this.campanaDatos.nombre_campana || ''
+            },
+            {
+              name: 'fecha_campana',
+              type: 'date',
+              placeholder: 'Fecha de inicio de la campaña',
+              value: this.campanaDatos.fecha_campana || ''
+            },
+            {
+              name: 'fecha_termino',
+              type: 'date',
+              placeholder: 'Fecha de término de la campaña',
+              value: this.campanaDatos.fecha_termino || ''
+            },
+            {
+              name: 'apertura',
+              type: 'time',
+              placeholder: 'Hora de apertura (ej: 08:00)',
+              value: this.campanaDatos.apertura || ''
+            },
+            {
+              name: 'cierre',
+              type: 'time',
+              placeholder: 'Hora de cierre (ej: 18:00)',
+              value: this.campanaDatos.cierre || ''
+            },
+            {
+              name: 'meta',
+              type: 'text',
+              placeholder: 'Meta de donaciones',
+              value: this.campanaDatos.meta || ''
+            },
+            // Separador visual
+            {
+              name: 'separador',
+              type: 'text',
+              value: '--- UBICACIÓN ---',
+              disabled: true
+            },
+            // Opciones de ubicación
+            ...centroOptions
       ],
       buttons: [
         {
@@ -444,27 +945,75 @@ export class IndexPage implements OnInit, OnDestroy {
           role: 'cancel'
         },
         {
-          text: 'Siguiente',
+              text: 'Seleccionar en el mapa',
+              handler: (data) => {
+                // Guardar datos del formulario
+                this.campanaDatos = data;
+                // Cerrar el modal y abrir selector de mapa
+                setTimeout(() => {
+                  this.abrirSelectorMapaIntegrado(data);
+                }, 100);
+                return true; // Cerrar el alert
+              }
+            },
+            {
+              text: 'Confirmar',
           handler: async (data) => {
-            this.mostrarSelectorCentro(data); // paso siguiente
+                // Validar que se haya seleccionado una ubicación
+                if (!this.ubicacionSeleccionada && !data.ubicacion) {
+                  this.showToast('Por favor selecciona una ubicación', 'warning');
             return false;
+                }
+                
+                // Preparar datos para enviar
+                const nuevaCampana = {
+                  ...data,
+                  latitud: this.ubicacionSeleccionada?.lat || -33.4489,
+                  longitud: this.ubicacionSeleccionada?.lng || -70.6693,
+                  id_centro: this.ubicacionSeleccionada?.tipo === 'centro' ? 
+                    parseInt(data.ubicacion?.replace('centro_', '')) : null
+                };
+                
+                await this.enviarCampana(nuevaCampana);
+                return true;
           }
         }
       ]
     });
   
     await alert.present();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar centros:', error);
+        this.showToast('Error al cargar centros', 'danger');
+      }
+    });
   }
   
   async mostrarSelectorCentro(dataForm1: any) {
-    const inputOptions = this.donationCenters.map(c => ({
+    // Obtener solo los centros del representante actual
+    this.apiService.getCentrosDonacion("representante=true").subscribe({
+      next: async (res) => {
+        const centrosDelRepresentante = res.data || res;
+        console.log('🏢 Centros del representante:', centrosDelRepresentante);
+        
+        // Si no tiene centros, ir directo al selector de mapa
+        if (!centrosDelRepresentante || centrosDelRepresentante.length === 0) {
+          console.log('📍 Representante sin centros, abriendo selector de mapa...');
+          this.abrirSelectorMapa(dataForm1, null);
+          return;
+        }
+        
+        // Crear opciones solo con los centros del representante
+        const inputOptions = centrosDelRepresentante.map((c: any) => ({
       label: c.nombre_centro,
-      value: c.id_centro
+          value: c.id_centro,
+          centro: c // Guardamos el centro completo para acceder a sus coordenadas
     }));
   
     const alert = await this.alertController.create({
       header: 'Selecciona el centro',
-      inputs: inputOptions.map(opt => ({
+          inputs: inputOptions.map((opt: any) => ({
         type: 'radio',
         label: opt.label,
         value: opt.value
@@ -473,22 +1022,26 @@ export class IndexPage implements OnInit, OnDestroy {
         {
           text: 'Usar ubicación del centro',
           handler: async (idCentro) => {
-            const centro = this.donationCenters.find(c => c.id_centro === idCentro);
+                // Buscar el centro seleccionado en los centros del representante
+                const centroSeleccionado = centrosDelRepresentante.find((c: any) => c.id_centro === idCentro);
+                if (centroSeleccionado) {
             const nuevaCampana = {
               ...dataForm1,
               id_centro: idCentro,
-              latitud: String(centro?.coordenadas?.[1] || ''),
-              longitud: String(centro?.coordenadas?.[0] || ''),
-              id_representante: this.userId,
-              fecha_creacion: new Date().toISOString().split('T')[0],
+                    // Usar coordenadas del centro del representante
+                    latitud: centroSeleccionado.latitud || -33.4489,
+                    longitud: centroSeleccionado.longitud || -70.6693
             };
             await this.enviarCampana(nuevaCampana);
+                } else {
+                  this.showToast('Error: Centro no encontrado', 'danger');
+                }
           }
         },
         {
           text: 'Seleccionar en el mapa',
           handler: async (idCentro) => {
-            this.abrirSelectorMapa(dataForm1, idCentro); // lógica futura con click en mapa
+                this.abrirSelectorMapa(dataForm1, idCentro);
           }
         },
         {
@@ -499,41 +1052,314 @@ export class IndexPage implements OnInit, OnDestroy {
     });
   
     await alert.present();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar centros del representante:', error);
+        this.showToast('Error al cargar centros', 'danger');
+      }
+    });
   }
   
   async enviarCampana(campanaData: any) {
     try {
-      await this.apiService.crearCampana(campanaData).toPromise();
+      console.log('📤 Enviando campaña:', campanaData); // Para debug
+      const response = await this.apiService.crearCampana(campanaData).toPromise();
+      console.log('✅ Respuesta del servidor:', response);
       this.showToast('Campaña creada con éxito', 'success');
-      // Opcional: volver a cargar campañas si están en el mapa
+      
+      // Recargar campañas después de crear una nueva
+      this.cargarCampanasDisponibles();
+      
+      // Preparar marcador permanente pero no agregarlo inmediatamente
+      if (campanaData.latitud && campanaData.longitud && this.map) {
+        console.log('🗺️ Preparando marcador permanente para:', {
+          lat: campanaData.latitud,
+          lng: campanaData.longitud
+        });
+        
+        const campanaMarker = {
+          id_centro: null,
+          nombre_centro: campanaData.nombre_campana,
+          direccion_centro: 'Campaña móvil',
+          comuna: 'Ubicación personalizada',
+          telefono: '',
+          fecha_creacion: '',
+          created_at: '',
+          id_representante: null,
+          tipo: 'campana' as const,
+          distancia: '0 km',
+          horario_apertura: campanaData.apertura,
+          horario_cierre: campanaData.cierre,
+          // Usar las coordenadas exactas enviadas
+          coordenadas: [campanaData.longitud, campanaData.latitud] as [number, number]
+        };
+        
+        console.log('📍 Marcador de campaña preparado:', campanaMarker);
+        
+        this.donationCenters.push(campanaMarker);
+        
+        // Agregar el marcador permanente después de que se remueva el temporal
+        setTimeout(() => {
+          console.log('🔄 Agregando marcador permanente al mapa...');
+          this.addMarkerToMap(campanaMarker);
+          console.log('✅ Marcador permanente agregado con coordenadas:', campanaMarker.coordenadas);
+        }, 3500); // Un poco después de que se remueva el temporal (3000ms + 500ms)
+      }
     } catch (error) {
-      console.error('Error al crear campaña:', error);
+      console.error('❌ Error al crear campaña:', error);
       this.showToast('Error al crear campaña', 'danger');
+      throw error; // Re-lanzar el error para que lo maneje abrirSelectorMapa
     }
   }
   
-  abrirSelectorMapa(dataForm1: any, idCentro: number) {
-    const mensaje = 'Haz clic en el mapa para seleccionar una ubicación.';
+  abrirSelectorMapa(dataForm1: any, idCentro: number | null) {
+    const mensaje = 'Haz clic en el mapa para seleccionar una ubicación exacta.';
   
     this.showToast(mensaje, 'primary');
+    
+    // Cambiar cursor del mapa para indicar modo de selección
+    this.map.getCanvas().style.cursor = 'crosshair';
+    
+    // Variable para almacenar el marcador temporal
+    let marcadorTemporal: mapboxgl.Marker | null = null;
+    let marcadorPreciso: mapboxgl.Marker | null = null;
   
     const clickHandler = async (e: mapboxgl.MapMouseEvent) => {
-      const lngLat = e.lngLat;
-      this.map.off('click', clickHandler); // eliminar listener después de un solo click
+      // Método 1: Coordenadas directas del evento
+      const lngLat1 = e.lngLat;
+      
+      // Método 2: Unproject del punto exacto
+      const point = e.point;
+      const lngLat2 = this.map.unproject(point);
+      
+      // Método 3: Unproject con ajuste de pixel
+      const adjustedPoint = new mapboxgl.Point(Math.round(point.x), Math.round(point.y));
+      const lngLat3 = this.map.unproject(adjustedPoint);
+      
+      // Método 4: Coordenadas con máxima precisión usando getBounds para contexto
+      const bounds = this.map.getBounds();
+      const zoom = this.map.getZoom();
+      
+      // Calcular la resolución del pixel en metros
+      const metersPerPixel = (40075016.686 * Math.cos(lngLat2.lat * Math.PI / 180)) / Math.pow(2, zoom + 8);
+      
+      console.log('🎯 ANÁLISIS DE PRECISIÓN:');
+      console.log('  📍 Método 1 (e.lngLat):', { lat: lngLat1.lat, lng: lngLat1.lng });
+      console.log('  📍 Método 2 (unproject):', { lat: lngLat2.lat, lng: lngLat2.lng });
+      console.log('  📍 Método 3 (unproject ajustado):', { lat: lngLat3.lat, lng: lngLat3.lng });
+      console.log('  📐 Pixel clickeado:', { x: point.x, y: point.y });
+      console.log('  📐 Pixel ajustado:', { x: adjustedPoint.x, y: adjustedPoint.y });
+      console.log('  🔍 Zoom actual:', zoom);
+      console.log('  📏 Metros por pixel:', metersPerPixel.toFixed(2));
+      
+      // Usar el método más preciso (unproject ajustado)
+      let lat = Number(lngLat3.lat.toFixed(12)); // 12 decimales para máxima precisión
+      let lng = Number(lngLat3.lng.toFixed(12));
+      
+      // Validación geográfica estricta para Chile
+      const dentroDeChile = lng >= -76 && lng <= -66 && lat >= -56 && lat <= -17;
+      if (!dentroDeChile) {
+        console.warn('❌ Coordenadas fuera del rango de Chile:', { lat, lng });
+        this.showToast('Por favor selecciona un punto dentro de Chile', 'warning');
+        return;
+      }
+      
+      // Validación de precisión - si el margen es muy grande, advertir
+      if (metersPerPixel > 10) {
+        console.warn('⚠️ Precisión baja detectada:', metersPerPixel.toFixed(2), 'metros por pixel');
+        this.showToast(`Zoom recomendado para mayor precisión (actual: ${metersPerPixel.toFixed(0)}m/pixel)`, 'warning');
+      }
+      
+      console.log('✅ COORDENADAS FINALES:', { lat, lng });
+      console.log('📊 Precisión estimada:', metersPerPixel.toFixed(2), 'metros');
+      
+      // Restaurar cursor normal
+      this.map.getCanvas().style.cursor = '';
+      
+      // Limpiar marcadores anteriores
+      if (marcadorTemporal) marcadorTemporal.remove();
+      if (marcadorPreciso) marcadorPreciso.remove();
+      
+      // Crear marcador temporal grande (área de precisión)
+      marcadorTemporal = new mapboxgl.Marker({ 
+        color: '#00FF00',
+        scale: 1.5 
+      })
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+      
+      // Crear marcador pequeño para el punto exacto
+      marcadorPreciso = new mapboxgl.Marker({ 
+        color: '#FF0000', // Rojo para el punto exacto
+        scale: 0.3 
+      })
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+      
+      // Popup con información detallada de precisión
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: false,
+        closeOnClick: false
+      })
+        .setLngLat([lng, lat])
+        .setHTML(`
+          <div style="text-align: center; font-size: 11px; max-width: 200px;">
+            <h4>🎯 Ubicación Exacta</h4>
+            <p><strong>Lat:</strong> ${lat}</p>
+            <p><strong>Lng:</strong> ${lng}</p>
+            <hr style="margin: 5px 0;">
+            <p><strong>Precisión:</strong> ±${metersPerPixel.toFixed(1)}m</p>
+            <p><strong>Zoom:</strong> ${zoom.toFixed(1)}x</p>
+            <p><strong>Pixel:</strong> (${adjustedPoint.x}, ${adjustedPoint.y})</p>
+            <hr style="margin: 5px 0;">
+            <p style="color: #00AA00; font-weight: bold;">Creando campaña...</p>
+            <p style="font-size: 9px; color: #666;">
+              🟢 Área de precisión<br/>
+              🔴 Punto exacto
+            </p>
+          </div>
+        `)
+        .addTo(this.map);
+      
+      // Remover el listener de clics
+      this.map.off('click', clickHandler);
+      
+      // Crear un círculo de precisión visual
+      const precisionCircle: GeoJSON.Feature<GeoJSON.Point> = {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [lng, lat]
+        },
+        properties: {
+          radius: metersPerPixel
+        }
+      };
+      
+      // Agregar círculo de precisión al mapa
+      if (this.map.getSource('precision-circle')) {
+        this.map.removeLayer('precision-circle');
+        this.map.removeSource('precision-circle');
+      }
+      
+      this.map.addSource('precision-circle', {
+        type: 'geojson',
+        data: precisionCircle
+      });
+      
+      this.map.addLayer({
+        id: 'precision-circle',
+        type: 'circle',
+        source: 'precision-circle',
+        paint: {
+          'circle-radius': {
+            stops: [
+              [0, 0],
+              [20, metersPerPixel * 0.5] // Radio proporcional a la precisión
+            ],
+            base: 2
+          },
+          'circle-color': '#00FF00',
+          'circle-opacity': 0.1,
+          'circle-stroke-color': '#00FF00',
+          'circle-stroke-width': 1,
+          'circle-stroke-opacity': 0.3
+        }
+      });
   
       const nuevaCampana = {
         ...dataForm1,
         id_centro: idCentro,
-        latitud: String(lngLat.lat),
-        longitud: String(lngLat.lng),
-        id_representante: this.userId,
-        fecha_creacion: new Date().toISOString().split('T')[0],
+        // Enviar coordenadas con máxima precisión
+        latitud: lat,
+        longitud: lng,
+        // Agregar metadatos de precisión para debugging
+        precision_meters: metersPerPixel,
+        zoom_level: zoom,
+        pixel_coords: { x: adjustedPoint.x, y: adjustedPoint.y }
       };
-  
+      
+      console.log('📤 ENVIANDO CAMPAÑA CON MÁXIMA PRECISIÓN:', nuevaCampana);
+
+      try {
       await this.enviarCampana(nuevaCampana);
+        
+        // Remover elementos visuales después del éxito
+        setTimeout(() => {
+          marcadorTemporal?.remove();
+          marcadorPreciso?.remove();
+          popup.remove();
+          
+          // Remover círculo de precisión
+          if (this.map.getLayer('precision-circle')) {
+            this.map.removeLayer('precision-circle');
+            this.map.removeSource('precision-circle');
+          }
+        }, 4000); // Mantener visible 4 segundos para verificar
+        
+      } catch (error) {
+        // En caso de error, mantener elementos para debugging
+        if (marcadorTemporal) {
+          marcadorTemporal.remove();
+          marcadorTemporal = new mapboxgl.Marker({ 
+            color: '#FF0000',
+            scale: 1.0 
+          })
+            .setLngLat([lng, lat])
+            .addTo(this.map);
+          
+          if (marcadorPreciso) marcadorPreciso.remove();
+          
+          popup.setHTML(`
+            <div style="text-align: center; font-size: 11px;">
+              <h4>❌ Error</h4>
+              <p>No se pudo crear la campaña</p>
+              <p><strong>Lat:</strong> ${lat}</p>
+              <p><strong>Lng:</strong> ${lng}</p>
+              <p><strong>Precisión:</strong> ±${metersPerPixel.toFixed(1)}m</p>
+              <p style="font-size: 10px; color: #666;">Las coordenadas eran correctas</p>
+            </div>
+          `);
+          
+          setTimeout(() => {
+            marcadorTemporal?.remove();
+            popup.remove();
+            if (this.map.getLayer('precision-circle')) {
+              this.map.removeLayer('precision-circle');
+              this.map.removeSource('precision-circle');
+            }
+          }, 8000);
+        }
+        
+        console.error('❌ Error al crear campaña:', error);
+      }
     };
   
     this.map.once('click', clickHandler);
+    
+    // Mostrar información de precisión actual
+    const currentZoom = this.map.getZoom();
+    const currentCenter = this.map.getCenter();
+    const currentMetersPerPixel = (40075016.686 * Math.cos(currentCenter.lat * Math.PI / 180)) / Math.pow(2, currentZoom + 8);
+    
+    console.log('📊 ESTADO ACTUAL DEL MAPA:');
+    console.log('  🔍 Zoom:', currentZoom.toFixed(2));
+    console.log('  📏 Precisión actual:', currentMetersPerPixel.toFixed(2), 'metros por pixel');
+    console.log('  📍 Centro:', { lat: currentCenter.lat.toFixed(6), lng: currentCenter.lng.toFixed(6) });
+    
+    if (currentMetersPerPixel > 5) {
+      this.showToast(`💡 Haz zoom para mayor precisión (actual: ${currentMetersPerPixel.toFixed(0)}m)`, 'primary');
+    }
+    
+    // Timeout de seguridad
+    setTimeout(() => {
+      if (this.map.getCanvas().style.cursor === 'crosshair') {
+        this.map.getCanvas().style.cursor = '';
+        this.map.off('click', clickHandler);
+        this.showToast('Selección de ubicación cancelada por timeout', 'warning');
+      }
+    }, 120000); // 2 minutos
   }
   
   private async verificarRutaGuardada() {
@@ -571,13 +1397,20 @@ export class IndexPage implements OnInit, OnDestroy {
         return;
       }
   
-      const [lng, lat] = destino;
-      console.log('🎯 Coordenadas de destino:', { lng, lat });
+      const [lng, lat] = destino.map(coord => parseFloat(coord));
+      console.log('🎯 Coordenadas de destino parseadas:', { lng, lat });
   
-      // Verificar si está dentro del rango de Chile
-      const dentroDeChile = lng >= -76 && lng <= -66 && lat >= -56 && lat <= -17;
+      // Validar que las coordenadas son números válidos
+      if (isNaN(lng) || isNaN(lat)) {
+        console.warn('🚫 Coordenadas no son números válidos:', { lng, lat });
+        localStorage.removeItem('ruta_actual');
+        return;
+      }
+  
+      // Verificar si está dentro del rango de Chile (rangos más amplios para ser más permisivos)
+      const dentroDeChile = lng >= -110 && lng <= -60 && lat >= -60 && lat <= -10;
       if (!dentroDeChile) {
-        console.warn('❌ Coordenadas fuera de Chile:', destino);
+        console.warn('❌ Coordenadas fuera de Chile:', { lng, lat });
         this.showToast('Ubicación inválida. No se puede mostrar la ruta.', 'warning');
         localStorage.removeItem('ruta_actual');
         return;
@@ -586,7 +1419,7 @@ export class IndexPage implements OnInit, OnDestroy {
       // Centrar mapa
       console.log('🗺️ Centrando mapa en destino...');
       this.map.flyTo({
-        center: destino as [number, number],
+        center: [lng, lat] as [number, number],
         zoom: 15
       });
 
@@ -698,12 +1531,19 @@ export class IndexPage implements OnInit, OnDestroy {
         const lugar = JSON.parse(lugarSeleccionado);
         const donacionData: any = {
           rut: scannedData.rut,
-          centro_id: lugar.centro_id,
-          tipo_donacion: lugar.tipo === 'campana' ? 'campana' : 'punto'
+          tipo_donacion: lugar.tipo
         };
-  
+        
+        // Solo enviar centro_id si existe
+          if (lugar.centro_id) {
+          donacionData.centro_id = lugar.centro_id;
+        }
+        
+        // Agregar IDs específicos según el tipo
         if (lugar.tipo === 'campana' && lugar.campana_id) {
           donacionData.campana_id = lugar.campana_id;
+        } else if (lugar.tipo === 'solicitud' && lugar.solicitud_id) {
+          donacionData.solicitud_id = lugar.solicitud_id;
         }
   
         this.apiService.guardarDonacionQR(donacionData).subscribe({
@@ -728,6 +1568,47 @@ export class IndexPage implements OnInit, OnDestroy {
       this.showToast('ℹ️ Escaneo cancelado', 'medium');
     }
   }
+  
+  private normalizeCoordinate(value: number, type: 'lat' | 'lon'): number {
+    // Valores de referencia para Chile
+    const chileRanges = {
+      lat: { min: -56, max: -17 }, // Chile va desde Arica hasta Antártica
+      lon: { min: -109, max: -66 } // Desde Isla de Pascua hasta frontera argentina
+    };
+    
+    const isLat = type === 'lat';
+    const expectedRange = isLat ? chileRanges.lat : chileRanges.lon;
+    const santiagoDef = isLat ? -33.4489 : -70.6693;
+    
+    // Si el valor es 0 o muy cerca de 0, usar Santiago por defecto
+    if (Math.abs(value) < 0.0001) {
+      console.log(`⚠️ Coordenada ${type} es 0 o muy pequeña (${value}), usando Santiago por defecto`);
+      return santiagoDef;
+    }
+    
+    // Si ya está en rango válido de Chile, devolver tal como está
+    if (value >= expectedRange.min && value <= expectedRange.max) {
+      console.log(`✅ Coordenada ${type} ya válida: ${value}`);
+      return value;
+    }
+    
+    // Si es un entero muy grande (escalado), dividir por 1,000,000
+    if (Math.abs(value) > 1000) {
+      const scaled = value / 1000000;
+      console.log(`🔄 Coordenada ${type} escalada: ${value} -> ${scaled}`);
+      if (scaled >= expectedRange.min && scaled <= expectedRange.max) {
+        return scaled;
+      } else {
+        console.warn(`⚠️ Coordenada ${type} escalada fuera de rango: ${scaled}, usando Santiago`);
+        return santiagoDef;
+      }
+    }
+    
+    // Si es un valor fuera de rango y no es escalado, usar Santiago por defecto
+    console.warn(`⚠️ Coordenada ${type} fuera de rango: ${value}, usando Santiago por defecto`);
+    return santiagoDef;
+  }
+
   
 
 }
