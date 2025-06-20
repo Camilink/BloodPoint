@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
+import { KeyboardService } from '../services/keyboard.service';
 import { LoginCredentials, LoginResponse } from '../interfaces/login';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
@@ -14,7 +15,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [IonicModule, FormsModule, RouterModule, CommonModule],
 })
-export class LoginPage {
+export class LoginPage implements OnInit, OnDestroy {
   tipoUsuario: 'donante' | 'representante' = 'donante';
   
   credentials: LoginCredentials & { email?: string } = {
@@ -74,8 +75,18 @@ export class LoginPage {
     private apiService: ApiService,
     private router: Router,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private keyboardService: KeyboardService
   ) {}
+
+  ngOnInit() {
+    // Configurar el comportamiento del teclado
+    this.keyboardService.setKeyboardConfig();
+  }
+
+  ngOnDestroy() {
+    // El servicio maneja automáticamente la limpieza de listeners
+  }
 
   async onLogin() {
     const isDonante = this.tipoUsuario === 'donante';

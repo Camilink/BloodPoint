@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonicModule, ToastController } from '@ionic/angular';
+import { KeyboardService } from '../services/keyboard.service';
 import { ApiService } from '../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [IonicModule, FormsModule, CommonModule],
 })
-export class EditarperfilPage implements OnInit {
+export class EditarperfilPage implements OnInit, OnDestroy {
   avatarUrl = 'https://ionicframework.com/docs/img/demos/avatar.svg';
   nuevaImagen: File | null = null;
 
@@ -32,11 +33,18 @@ export class EditarperfilPage implements OnInit {
 
   constructor(
     private apiService: ApiService, 
-    private toastController: ToastController
+    private toastController: ToastController,
+    private keyboardService: KeyboardService
   ) {}
 
   ngOnInit() {
     this.cargarPerfilUsuario();
+    // Configurar el comportamiento del teclado
+    this.keyboardService.setKeyboardConfig();
+  }
+
+  ngOnDestroy() {
+    // El servicio maneja automáticamente la limpieza de listeners
   }
 
   private cargarPerfilUsuario() {

@@ -84,3 +84,26 @@ body.scanner-active {
     border-radius: 16px !important;
   }
 }
+
+/* Keyboard handling styles */
+.keyboard-is-open {
+  /* Smooth transition when keyboard appears/disappears */
+  transition: padding-bottom 0.3s ease-in-out;
+}
+
+/* Ensure focused input is visible when keyboard is open */
+ion-item.item-has-focus {
+  --border-color: var(--ion-color-primary);
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+/* Adjust scroll behavior when keyboard is open */
+.keyboard-is-open ion-content {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Prevent content from being hidden behind keyboard */
+.keyboard-is-open .scroll-content {
+  padding-bottom: env(keyboard-height, 0px);
+}

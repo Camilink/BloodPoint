@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
+import { KeyboardService } from '../services/keyboard.service';
 import { CommonModule } from '@angular/common';
 import { DonanteFormulario } from '../interfaces/donante-formulario';
 import { Router } from '@angular/router';
@@ -14,7 +15,7 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [CommonModule, IonicModule, FormsModule, RouterModule],
 })
-export class RegistrarsePage implements OnInit {
+export class RegistrarsePage implements OnInit, OnDestroy {
   formData: Partial<DonanteFormulario> & { password?: string, repetirPassword?: string, rut?: string, direccion?: string, comuna?: string, ocupacion?: string } = {
     rut: '',
     nombreCompleto: '',
@@ -37,6 +38,7 @@ export class RegistrarsePage implements OnInit {
     private apiService: ApiService,
     private toastController: ToastController,
     private router: Router,
+    private keyboardService: KeyboardService
   ) {}
 
   validarRut(rut: string): boolean {
@@ -166,5 +168,12 @@ export class RegistrarsePage implements OnInit {
     await toast.present();
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Configurar el comportamiento del teclado
+    this.keyboardService.setKeyboardConfig();
+  }
+
+  ngOnDestroy() {
+    // El servicio maneja automáticamente la limpieza de listeners
+  }
 }
