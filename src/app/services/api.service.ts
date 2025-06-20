@@ -7,44 +7,45 @@ import { Donante } from '../interfaces/donante-backend';
 import { LoginCredentials, LoginResponse } from '../interfaces/login';
 import { HistorialDonacionesResponse, DonacionHistorial } from '../interfaces/donacion-historial.interface';
 import { HttpHeaders } from '@angular/common/http'; 
-const API_URL = 'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com';
 import { CampanaActiva } from '../interfaces/campana.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
+  private readonly API_URL = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
   // GET /donantes - Obtener todos los donantes
   getDonantes(): Observable<Donante[]> { 
-    return this.http.get<Donante[]>(`${API_URL}/donantes/`);
+    return this.http.get<Donante[]>(`${this.API_URL}/donantes/`);
   }
 
   // GET /donantes/:id - Obtener un donante específico
   getDonante(id: number): Observable<Donante> {
-    return this.http.get<Donante>(`${API_URL}/donantes/${id}/`);
+    return this.http.get<Donante>(`${this.API_URL}/donantes/${id}/`);
   }
 
   // POST /donantes - Crear nuevo donante
   crearDonante(donante: DonanteFormulario): Observable<Donante> {
-    return this.http.post<Donante>(`${API_URL}/donantes/`, donante);
+    return this.http.post<Donante>(`${this.API_URL}/donantes/`, donante);
   }
 
   // PUT /donantes/:id - Actualizar donante
   actualizarDonante(id: number, donante: Donante): Observable<Donante> {
-    return this.http.put<Donante>(`${API_URL}/donantes/${id}/`, donante);
+    return this.http.put<Donante>(`${this.API_URL}/donantes/${id}/`, donante);
   }
 
   // DELETE /donantes/:id - Eliminar donante
   eliminarDonante(id: number): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/donantes/${id}/`);
+    return this.http.delete<void>(`${this.API_URL}/donantes/${id}/`);
   }
 
   // POST /donaciones - Registrar nueva donación
   registrarDonacion(donacion: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/donaciones/`, donacion);
+    return this.http.post<any>(`${this.API_URL}/donaciones/`, donacion);
   }
 
   // POST /auth/login - Iniciar sesión
@@ -56,7 +57,7 @@ export class ApiService {
     });
   
     return this.http.post<LoginResponse>(
-      `${API_URL}/ingresar/`,
+      `${this.API_URL}/ingresar/`,
       credentials,
       { headers } // <-- Aquí se agregan los headers
     ).pipe(
@@ -66,7 +67,7 @@ export class ApiService {
 
   // GET /donantes - Test connection
   testConnection(): Observable<LoginResponse> {
-    return this.http.get<LoginResponse>(`${API_URL}/donantes`);
+    return this.http.get<LoginResponse>(`${this.API_URL}/donantes`);
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -85,7 +86,7 @@ export class ApiService {
   }
 
   registrarUsuario(data: any): Observable<any> {
-    return this.http.post(`${API_URL}/register/`, data).pipe(
+    return this.http.post(`${this.API_URL}/register/`, data).pipe(
       catchError(this.handleError)
     );
   }
@@ -95,7 +96,7 @@ export class ApiService {
     const headers = new HttpHeaders({
       'Authorization': `Token ${token}`
     });
-    return this.http.get(`${API_URL}/profile/`, { headers });
+    return this.http.get(`${this.API_URL}/profile/`, { headers });
   }
   
   actualizarPerfilUsuario(data: any): Observable<any> {
@@ -103,7 +104,7 @@ export class ApiService {
     const headers = new HttpHeaders({
       'Authorization': `Token ${token}`
     });
-    return this.http.put(`${API_URL}/profile/`, data, { headers });
+    return this.http.put(`${this.API_URL}/profile/`, data, { headers });
   }
 
   registrarDonacionDesdeCentro(donacion: {
@@ -117,7 +118,7 @@ export class ApiService {
       'Content-Type': 'application/json'
     });
   
-    return this.http.post(`${API_URL}/donaciones/registrar/`, donacion, { headers });
+    return this.http.post(`${this.API_URL}/donaciones/registrar/`, donacion, { headers });
   }
   
   getHistorialDonaciones(): Observable<HistorialDonacionesResponse> {
@@ -126,7 +127,7 @@ export class ApiService {
       'Authorization': `Token ${token}`
     });
 
-    return this.http.get<HistorialDonacionesResponse>(`${API_URL}/donaciones/historial/`, { headers }).pipe(
+    return this.http.get<HistorialDonacionesResponse>(`${this.API_URL}/donaciones/historial/`, { headers }).pipe(
       tap(response => {
         console.log('📋 Respuesta del historial:', response);
       }),
@@ -143,7 +144,7 @@ export class ApiService {
   }
 
   guardarDonacion(donacionData: any) {
-    return this.http.post(`${API_URL}/donaciones`, donacionData);
+    return this.http.post(`${this.API_URL}/donaciones`, donacionData);
   }
 
   getCampanasRepresentante() {
@@ -153,7 +154,7 @@ export class ApiService {
       'Content-Type': 'application/json'
     });
     // Usar el endpoint correcto que existe en las URLs de Django
-    return this.http.get<any[]>(`${API_URL}/api/campanas_activas_representante/`, { headers });
+    return this.http.get<any[]>(`${this.API_URL}/api/campanas_activas_representante/`, { headers });
   }  
   
   guardarDonacionQR(donacionData: any): Observable<any> {
@@ -163,7 +164,7 @@ export class ApiService {
       'Content-Type': 'application/json'
     });
 
-    return this.http.post(`${API_URL}/donaciones/qr/`, donacionData, { headers });
+    return this.http.post(`${this.API_URL}/donaciones/qr/`, donacionData, { headers });
   }
 
   crearCampana(campanaData: any) {
@@ -172,7 +173,7 @@ export class ApiService {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json'
     };
-    return this.http.post(`${API_URL}/campanas/crear/`, campanaData, { headers });
+    return this.http.post(`${this.API_URL}/campanas/crear/`, campanaData, { headers });
   }
 
   validarCampana(campana_id: any) {
@@ -181,7 +182,7 @@ export class ApiService {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json'
     };
-    return this.http.put(`${API_URL}/campanas/${campana_id}/`,{}, { headers });
+    return this.http.put(`${this.API_URL}/campanas/${campana_id}/`,{}, { headers });
   }
   
   // Método para obtener centros de donación
@@ -198,7 +199,7 @@ export class ApiService {
     });
     
     console.log('Enviando petición con token:', token.substring(0, 10) + '...');
-    return this.http.get(`${API_URL}/centros?${filters}`, { headers }).pipe(
+    return this.http.get(`${this.API_URL}/centros?${filters}`, { headers }).pipe(
       tap(response => {
         console.log('Respuesta completa:', response);
       }),
@@ -217,7 +218,7 @@ export class ApiService {
       'Content-Type': 'application/json'
     });
     
-    return this.http.get(`${API_URL}/campanas/activas/`, { headers }).pipe(
+    return this.http.get(`${this.API_URL}/campanas/activas/`, { headers }).pipe(
       catchError(error => {
         console.error('Error al obtener campañas activas:', error);
         return throwError(() => error);
@@ -230,7 +231,7 @@ export class ApiService {
     console.log('🔍 Verificando endpoints de solicitudes...');
     
     // Intentar el endpoint base de solicitudes
-    return this.http.get(`${API_URL}/solicitudes/`).pipe(
+    return this.http.get(`${this.API_URL}/solicitudes/`).pipe(
       tap(response => {
         console.log('✅ Endpoint /solicitudes/ disponible:', response);
       }),
@@ -244,7 +245,7 @@ export class ApiService {
   crearSolicitudCampana(data: any): Observable<any> {
     const token = localStorage.getItem('authToken');
     console.log('🔑 Token para solicitud:', token ? `${token.substring(0, 10)}...` : 'No disponible');
-    console.log('📤 URL de solicitud:', `${API_URL}/solicitudes/crear/`);
+    console.log('📤 URL de solicitud:', `${this.API_URL}/solicitudes/crear/`);
     console.log('📋 Datos a enviar:', data);
     
     const headers = new HttpHeaders({
@@ -255,7 +256,7 @@ export class ApiService {
 
     console.log('📋 Headers enviados:', headers.keys());
   
-    return this.http.post(`${API_URL}/solicitudes/crear/`, data, { headers }).pipe(
+    return this.http.post(`${this.API_URL}/solicitudes/crear/`, data, { headers }).pipe(
       tap(response => {
         console.log('✅ Respuesta exitosa del servidor:', response);
       }),
@@ -277,7 +278,86 @@ export class ApiService {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.get<any[]>(`${API_URL}/achievements/`, { headers });
+    return this.http.get<any[]>(`${this.API_URL}/achievements/`, { headers });
+  }
+
+  // Device Token Management Methods
+  
+  /**
+   * POST /device-tokens/register/ - Register device FCM token
+   */
+  registerDeviceToken(data: { token: string; device_type: string; device_id?: string }): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(`${this.API_URL}/device-tokens/register/`, data, { headers });
+  }
+
+  /**
+   * DELETE /device-tokens/unregister/ - Unregister device FCM token
+   */
+  unregisterDeviceToken(data: { token: string }): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.request('DELETE', `${this.API_URL}/device-tokens/unregister/`, { 
+      headers, 
+      body: data 
+    });
+  }
+
+  /**
+   * GET /device-tokens/ - Get user's active device tokens
+   */
+  getUserDeviceTokens(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.get(`${this.API_URL}/device-tokens/`, { headers });
+  }
+
+  /**
+   * POST /notifications/test/ - Send test notification
+   */
+  sendTestNotification(data: { title?: string; body?: string }): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(`${this.API_URL}/notifications/test/`, data, { headers });
+  }
+
+  /**
+   * GET /achievements/unnotified/ - Get unnotified achievements
+   */
+  getUnnotifiedAchievements(): Observable<any[]> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.get<any[]>(`${this.API_URL}/achievements/unnotified/`, { headers });
+  }
+
+  /**
+   * POST /achievements/mark-notified/ - Mark achievements as notified
+   */
+  markAchievementsAsNotified(achievementIds: number[]): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Token ${token}`,
+      'Content-Type': 'application/json'
+    });
+    return this.http.post(`${this.API_URL}/achievements/mark-notified/`, { 
+      achievement_ids: achievementIds 
+    }, { headers });
   }
 
   /**
@@ -289,7 +369,7 @@ export class ApiService {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.post(`${API_URL}/record-app-share/`, {}, { headers }).pipe(
+    return this.http.post(`${this.API_URL}/record-app-share/`, {}, { headers }).pipe(
       tap(response => {
         console.log('✅ Compartir registrado:', response);
       }),
