@@ -4,8 +4,17 @@
 
 export const environment = {
   production: false,
+  apiUrl: 'http://localhost:8000',
   mapbox: {
     accessToken: 'pk.eyJ1IjoiemljeXVhbiIsImEiOiJjbWEybHV6ZDkwZmp0MmtwcnRpZWdkOTV2In0.H-szkKo7J7lXsTQhSF4sRQ'
+  },
+  firebase: {
+    apiKey: 'AIzaSyCinpCQxW_hpX_oyEnsBJ2coR49DMib8no',
+    authDomain: 'bloodpoint-notificacion.firebaseapp.com',
+    projectId: 'bloodpoint-notificacion',
+    storageBucket: 'bloodpoint-notificacion.firebasestorage.app',
+    messagingSenderId: '887736007151',
+    appId: '1:887736007151:android:88794d9839baed082f1e1a'
   }
 };
 
